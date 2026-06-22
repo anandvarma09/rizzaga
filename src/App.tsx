@@ -16,7 +16,9 @@ function App() {
     setIsLoggedIn(true);
   };
 
-  const logout = () => setIsLoggedIn(false);
+  const logout = () => {
+    setIsLoggedIn(false);
+  };
 
   const postMessage = () => {
     if (newPost.trim()) {
@@ -63,7 +65,7 @@ function App() {
           </button>
         </div>
 
-        {myPosts.map((post: any) => (
+        {myPosts.map((post) => (
           <div key={post.id} style={{ background: '#1f1f1f', padding: '25px', borderRadius: '20px', marginBottom: '15px' }}>
             <p><strong>You</strong> • {post.timestamp}</p>
             <p>{post.content}</p>
