@@ -16,9 +16,7 @@ function App() {
     setIsLoggedIn(true);
   };
 
-  const logout = () => {
-    setIsLoggedIn(false);
-  };
+  const logout = () => setIsLoggedIn(false);
 
   const postMessage = () => {
     if (newPost.trim()) {
