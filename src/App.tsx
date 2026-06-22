@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 
 function App() {
-  const [currentView, setCurrentView] = useState('wall');
+  const [currentView, setCurrentView] = useState<'wall' | 'explore' | 'contacts' | 'chats' | 'profile'>('wall');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [newPost, setNewPost] = useState('');
-  const [myPosts, setMyPosts] = useState([]);
+  const [myPosts, setMyPosts] = useState<any[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem('rizzaga_seed');
@@ -12,7 +12,7 @@ function App() {
   }, []);
 
   const generateSeed = () => {
-    alert("✅ Rizzaga Account Created! Save your keyphrase.");
+    alert("✅ Rizzaga Account Created!\nSave your keyphrase safely.");
     setIsLoggedIn(true);
   };
 
@@ -20,8 +20,6 @@ function App() {
     alert("✅ Account recovered!");
     setIsLoggedIn(true);
   };
-
-  const logout = () => setIsLoggedIn(false);
 
   const postMessage = () => {
     if (newPost.trim()) {
@@ -58,9 +56,17 @@ function App() {
           <>
             <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#eab308' }}>Today's Wall</h2>
             <div style={{ background: '#1f1f1f', padding: '25px', borderRadius: '20px', marginBottom: '30px', border: '1px solid #c026d3' }}>
-              <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What's happening today?" style={{ width: '100%', minHeight: '120px', background: 'transparent', border: 'none', color: 'white', fontSize: '18px' }} />
-              <button onClick={postMessage} style={{ marginTop: '15px', background: '#c026d3', color: 'white', padding: '16px', borderRadius: '16px', width: '100%', fontWeight: 'bold' }}>Post</button>
+              <textarea 
+                value={newPost} 
+                onChange={(e) => setNewPost(e.target.value)} 
+                placeholder="What's happening today?" 
+                style={{ width: '100%', minHeight: '120px', background: 'transparent', border: 'none', color: 'white', fontSize: '18px' }} 
+              />
+              <button onClick={postMessage} style={{ marginTop: '15px', background: '#c026d3', color: 'white', padding: '16px', borderRadius: '16px', width: '100%', fontWeight: 'bold' }}>
+                Post
+              </button>
             </div>
+
             {myPosts.map((post) => (
               <div key={post.id} style={{ background: '#1f1f1f', padding: '25px', borderRadius: '20px', marginBottom: '15px', border: '1px solid #eab308' }}>
                 <p><strong>You</strong> • {post.timestamp}</p>
