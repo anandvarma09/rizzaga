@@ -67,7 +67,7 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const directMessage = () => alert("💬 Direct Message (E2EE) coming soon");
+  const directMessage = () => alert("💬 Direct Message (E2EE) - Full chat coming soon");
   const sendComment = () => {
     if (!commentInput.trim()) return;
     alert(`💬 Comment sent: ${commentInput}`);
