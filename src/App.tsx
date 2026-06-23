@@ -80,7 +80,7 @@ function App() {
     alert("💬 Direct Message opened (E2EE) - Full chat coming soon");
   };
 
-  const sendComment = (postId: number) => {
+  const sendComment = () => {
     if (!commentInput.trim()) return;
     alert(`💬 Comment sent: ${commentInput}`);
     setCommentInput('');
@@ -149,7 +149,7 @@ function App() {
                 {activeCommentId === post.id && (
                   <div style={{ marginTop: '15px' }}>
                     <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} placeholder="Write a comment..." style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '12px', color: 'white' }} />
-                    <button onClick={() => sendComment(post.id)} style={{ marginTop: '8px', background: '#67e8f9', color: '#0f172a', padding: '10px 24px', borderRadius: '12px', fontWeight: 'bold' }}>Send</button>
+                    <button onClick={sendComment} style={{ marginTop: '8px', background: '#67e8f9', color: '#0f172a', padding: '10px 24px', borderRadius: '12px', fontWeight: 'bold' }}>Send</button>
                   </div>
                 )}
               </div>
