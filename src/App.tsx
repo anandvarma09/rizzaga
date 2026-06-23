@@ -36,12 +36,10 @@ function App() {
     setInputPhrase('');
   };
 
-  const correctText = (text: string) => {
-    return text
-      .replace(/\b(i|im|iam)\b/gi, "I")
-      .replace(/\b(u|ur)\b/gi, "you")
-      .replace(/\b(r)\b/gi, "are");
-  };
+  const correctText = (text: string) => text
+    .replace(/\b(i|im|iam)\b/gi, "I")
+    .replace(/\b(u|ur)\b/gi, "you")
+    .replace(/\b(r)\b/gi, "are");
 
   const postMessage = () => {
     if (!newPost.trim()) return;
@@ -66,15 +64,15 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const sendComment = (postId: number) => {
-    if (!commentInput.trim()) return;
-    alert(`💬 Comment sent: ${commentInput}`);
-    setCommentInput('');
-    setActiveCommentId(null);
+  const directMessage = () => {
+    alert("💬 Direct Message opened (E2EE) - Type your message below in future versions");
   };
 
-  const directMessage = () => {
-    alert("💬 Direct Message opened (E2EE + Blockchain simulation)");
+  const sendComment = (postId: number) => {
+    if (!commentInput.trim()) return;
+    alert(`Comment sent to post: ${commentInput}`);
+    setCommentInput('');
+    setActiveCommentId(null);
   };
 
   const logout = () => {
@@ -86,15 +84,18 @@ function App() {
 
   if (!isLoggedIn) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a, #1e2937)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-        <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.95)', padding: '40px', borderRadius: '24px', textAlign: 'center', border: '1px solid #60a5fa' }}>
-          <h1 style={{ fontSize: '52px', fontWeight: '900', marginBottom: '10px', color: '#a5b4fc' }}>Rizzaga</h1>
-          <p style={{ color: '#facc15', marginBottom: '30px' }}>Private • Encrypted • P2P + Blockchain</p>
-          <button onClick={generateSeed} style={{ width: '100%', padding: '18px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '16px', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.95)', padding: '50px 40px', borderRadius: '28px', textAlign: 'center', border: '1px solid #6366f1', boxShadow: '0 0 40px rgba(99,102,241,0.3)' }}>
+          <h1 style={{ fontSize: '56px', fontWeight: '900', marginBottom: '8px', background: 'linear-gradient(to right, #a5b4fc, #c4d0ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Rizzaga</h1>
+          <p style={{ color: '#fcd34d', marginBottom: '40px', fontSize: '18px' }}>Privacy First • Blockchain + Torrent</p>
+          
+          <button onClick={generateSeed} style={{ width: '100%', padding: '20px', background: 'linear-gradient(#6366f1, #4f46e5)', color: 'white', border: 'none', borderRadius: '16px', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold', boxShadow: '0 10px 20px rgba(99,102,241,0.4)' }}>
             Create New Account
           </button>
-          <textarea value={inputPhrase} onChange={(e) => setInputPhrase(e.target.value)} placeholder="Paste 12-word keyphrase..." style={{ width: '100%', height: '130px', background: '#1e2937', border: '1px solid #475569', borderRadius: '16px', padding: '16px', color: 'white', marginBottom: '20px' }} />
-          <button onClick={recoverAccount} style={{ width: '100%', padding: '18px', background: '#eab308', color: 'black', border: 'none', borderRadius: '16px', fontSize: '18px', fontWeight: 'bold' }}>
+          
+          <textarea value={inputPhrase} onChange={(e) => setInputPhrase(e.target.value)} placeholder="Paste your 12-word keyphrase..." style={{ width: '100%', height: '140px', background: '#1e2937', border: '1px solid #475569', borderRadius: '16px', padding: '16px', color: 'white', marginBottom: '20px' }} />
+          
+          <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#fcd34d', color: '#1e2937', border: 'none', borderRadius: '16px', fontSize: '18px', fontWeight: 'bold' }}>
             Recover Account
           </button>
         </div>
@@ -104,37 +105,37 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: 'white', paddingBottom: '90px' }}>
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#1e2937', padding: '16px', zIndex: 100, borderBottom: '2px solid #6366f1' }}>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', padding: '16px', zIndex: 100, borderBottom: '2px solid #6366f1', backdropFilter: 'blur(12px)' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#a5b4fc' }}>Rizzaga</h1>
       </header>
 
       <div style={{ paddingTop: '90px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
         {currentView === 'wall' && (
           <>
-            <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#facc15' }}>Today's Wall</h2>
-            <div style={{ background: '#1e2937', padding: '25px', borderRadius: '20px', marginBottom: '30px', border: '1px solid #6366f1' }}>
-              <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What's happening today?" style={{ width: '100%', minHeight: '120px', background: 'transparent', border: 'none', color: 'white', fontSize: '18px' }} />
-              <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
-                <button onClick={() => setVisibility('public')} style={{ flex: 1, padding: '10px', background: visibility === 'public' ? '#22c55e' : '#334155', borderRadius: '8px' }}>🌍 Public</button>
-                <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '10px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '8px' }}>18+</button>
+            <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#fcd34d' }}>Today's Wall</h2>
+            <div style={{ background: '#1e2937', padding: '25px', borderRadius: '24px', marginBottom: '30px', border: '1px solid #6366f1', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
+              <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What's happening today?" style={{ width: '100%', minHeight: '130px', background: '#0f172a', border: '1px solid #475569', borderRadius: '16px', padding: '16px', color: 'white', fontSize: '18px' }} />
+              <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
+                <button onClick={() => setVisibility('public')} style={{ flex: 1, padding: '12px', background: visibility === 'public' ? '#22c55e' : '#334155', borderRadius: '12px', fontWeight: 'bold' }}>🌍 Public</button>
+                <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '12px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '12px', fontWeight: 'bold' }}>🔞 18+</button>
               </div>
-              <button onClick={postMessage} style={{ marginTop: '15px', background: '#6366f1', color: 'white', padding: '16px', borderRadius: '16px', width: '100%', fontWeight: 'bold' }}>Post ({visibility})</button>
+              <button onClick={postMessage} style={{ marginTop: '16px', background: 'linear-gradient(#6366f1, #4f46e5)', color: 'white', padding: '16px', borderRadius: '16px', width: '100%', fontWeight: 'bold', boxShadow: '0 8px 20px rgba(99,102,241,0.3)' }}>Post ({visibility})</button>
             </div>
 
             {myPosts.map((post) => (
-              <div key={post.id} style={{ background: '#1e2937', padding: '25px', borderRadius: '20px', marginBottom: '20px', border: '1px solid #6366f1' }}>
+              <div key={post.id} style={{ background: '#1e2937', padding: '25px', borderRadius: '24px', marginBottom: '20px', border: '1px solid #6366f1', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
-                <p style={{ margin: '12px 0', fontSize: '17px' }}>{post.content}</p>
-                <div style={{ display: 'flex', gap: '20px', marginTop: '12px' }}>
-                  <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#facc15', fontSize: '24px' }}>⭐ {post.likes || 0}</button>
-                  <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#22d3ee', fontSize: '24px' }}>💬</button>
-                  <button onClick={() => directMessage()} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '24px' }}>✉️</button>
-                  <button onClick={() => shareMagnet(post.id)} style={{ background: 'none', border: 'none', color: '#22d3ee', fontSize: '24px' }}>🔗</button>
+                <p style={{ margin: '15px 0', fontSize: '17px', lineHeight: '1.5' }}>{post.content}</p>
+                <div style={{ display: 'flex', gap: '24px', marginTop: '15px' }}>
+                  <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#fcd34d', fontSize: '26px', transition: 'transform 0.2s' }}>⭐ {post.likes || 0}</button>
+                  <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '26px' }}>💬</button>
+                  <button onClick={directMessage} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '26px' }}>✉️</button>
+                  <button onClick={() => shareMagnet(post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '26px' }}>🔗</button>
                 </div>
                 {activeCommentId === post.id && (
-                  <div style={{ marginTop: '12px' }}>
-                    <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} placeholder="Write comment..." style={{ width: '100%', padding: '10px', background: '#334155', border: '1px solid #475569', borderRadius: '8px', color: 'white' }} />
-                    <button onClick={() => sendComment(post.id)} style={{ marginTop: '8px', background: '#22d3ee', color: 'black', padding: '8px 20px', borderRadius: '8px' }}>Send</button>
+                  <div style={{ marginTop: '15px' }}>
+                    <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} placeholder="Write a comment..." style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '12px', color: 'white' }} />
+                    <button onClick={() => sendComment(post.id)} style={{ marginTop: '8px', background: '#67e8f9', color: '#0f172a', padding: '10px 24px', borderRadius: '12px', fontWeight: 'bold' }}>Send</button>
                   </div>
                 )}
               </div>
@@ -143,26 +144,26 @@ function App() {
         )}
 
         {currentView === 'profile' && (
-          <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-            <h2 style={{ color: '#a5b4fc' }}>👤 Profile</h2>
-            <button onClick={() => alert("Your Keyphrase:\n\n" + seedPhrase)} style={{ margin: '20px 0', padding: '16px 40px', background: '#eab308', color: 'black', borderRadius: '12px', fontWeight: 'bold' }}>
+          <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+            <h2 style={{ color: '#a5b4fc', fontSize: '36px' }}>👤 Profile</h2>
+            <button onClick={() => alert("Your Recovery Keyphrase:\n\n" + seedPhrase)} style={{ margin: '30px 0', padding: '16px 50px', background: 'linear-gradient(#fcd34d, #f59e0b)', color: '#1e2937', borderRadius: '16px', fontWeight: 'bold', fontSize: '18px' }}>
               View Keyphrase
             </button>
-            <button onClick={logout} style={{ padding: '12px 30px', background: '#ef4444', color: 'white', borderRadius: '12px' }}>Logout</button>
+            <button onClick={logout} style={{ padding: '14px 40px', background: '#ef4444', color: 'white', borderRadius: '16px' }}>Logout</button>
           </div>
         )}
 
-        {currentView === 'explore' && <div style={{ padding: '100px 20px', textAlign: 'center', fontSize: '28px', color: '#22d3ee' }}>🔥 Explore Public Posts</div>}
-        {currentView === 'contacts' && <div style={{ padding: '100px 20px', textAlign: 'center', fontSize: '28px', color: '#facc15' }}>👥 Network</div>}
-        {currentView === 'chats' && <div style={{ padding: '100px 20px', textAlign: 'center', fontSize: '28px', color: '#a855f7' }}>💬 Chats</div>}
+        {currentView === 'explore' && <div style={{ padding: '120px 20px', textAlign: 'center', fontSize: '32px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
+        {currentView === 'contacts' && <div style={{ padding: '120px 20px', textAlign: 'center', fontSize: '32px', color: '#fcd34d' }}>👥 Network & Connections</div>}
+        {currentView === 'chats' && <div style={{ padding: '120px 20px', textAlign: 'center', fontSize: '32px', color: '#c084fc' }}>💬 Encrypted Chats</div>}
       </div>
 
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1e2937', display: 'flex', justifyContent: 'space-around', padding: '12px 0', borderTop: '2px solid #6366f1' }}>
-        <button onClick={() => setCurrentView('wall')} style={{ fontSize: '28px' }}>🏠</button>
-        <button onClick={() => setCurrentView('explore')} style={{ fontSize: '28px' }}>🔥</button>
-        <button onClick={() => setCurrentView('contacts')} style={{ fontSize: '28px' }}>👥</button>
-        <button onClick={() => setCurrentView('chats')} style={{ fontSize: '28px' }}>💬</button>
-        <button onClick={() => setCurrentView('profile')} style={{ fontSize: '28px' }}>👤</button>
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', display: 'flex', justifyContent: 'space-around', padding: '14px 0', borderTop: '2px solid #6366f1', backdropFilter: 'blur(12px)' }}>
+        <button onClick={() => setCurrentView('wall')} style={{ fontSize: '30px' }}>🏠</button>
+        <button onClick={() => setCurrentView('explore')} style={{ fontSize: '30px' }}>🔥</button>
+        <button onClick={() => setCurrentView('contacts')} style={{ fontSize: '30px' }}>👥</button>
+        <button onClick={() => setCurrentView('chats')} style={{ fontSize: '30px' }}>💬</button>
+        <button onClick={() => setCurrentView('profile')} style={{ fontSize: '30px' }}>👤</button>
       </nav>
     </div>
   );
