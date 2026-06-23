@@ -22,9 +22,7 @@ function App() {
   }, []);
 
   const savePosts = (posts: any[]) => {
-    if (seedPhrase) {
-      localStorage.setItem(`posts_${seedPhrase}`, JSON.stringify(posts));
-    }
+    if (seedPhrase) localStorage.setItem(`posts_${seedPhrase}`, JSON.stringify(posts));
   };
 
   const generateSeed = () => {
@@ -51,17 +49,10 @@ function App() {
   const postMessage = () => {
     if (!newPost.trim()) return;
     const corrected = correctText(newPost);
-    const newEntry = {
-      id: Date.now(),
-      user: "You",
-      content: corrected,
-      visibility,
-      timestamp: "just now",
-      likes: 0
-    };
-    const updatedPosts = [newEntry, ...myPosts];
-    setMyPosts(updatedPosts);
-    savePosts(updatedPosts);
+    const newEntry = { id: Date.now(), user: "You", content: corrected, visibility, timestamp: "just now", likes: 0 };
+    const updated = [newEntry, ...myPosts];
+    setMyPosts(updated);
+    savePosts(updated);
     setNewPost('');
   };
 
@@ -76,13 +67,10 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const directMessage = () => {
-    alert("💬 Direct Message opened (E2EE) - Full chat coming soon");
-  };
-
+  const directMessage = () => alert("💬 Direct Message (E2EE) - Full chat soon");
   const sendComment = () => {
     if (!commentInput.trim()) return;
-    alert(`💬 Comment sent: ${commentInput}`);
+    alert(`💬 Comment: ${commentInput}`);
     setCommentInput('');
     setActiveCommentId(null);
   };
@@ -127,7 +115,17 @@ function App() {
                 value={newPost} 
                 onChange={(e) => setNewPost(e.target.value)} 
                 placeholder="What's happening today?" 
-                style={{ width: '100%', minHeight: '130px', background: '#0f172a', border: '1px solid #475569', borderRadius: '16px', padding: '16px', color: 'white', fontSize: '18px', resize: 'vertical' }} 
+                style={{ 
+                  width: '100%', 
+                  minHeight: '130px', 
+                  background: '#0f172a', 
+                  border: '1px solid #475569', 
+                  borderRadius: '16px', 
+                  padding: '16px', 
+                  color: 'white', 
+                  fontSize: '18px',
+                  resize: 'vertical'
+                }} 
               />
               <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
                 <button onClick={() => setVisibility('public')} style={{ flex: 1, padding: '12px', background: visibility === 'public' ? '#22c55e' : '#334155', borderRadius: '12px', fontWeight: 'bold' }}>🌍 Public</button>
