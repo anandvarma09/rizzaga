@@ -91,7 +91,23 @@ function App() {
           <button onClick={generateSeed} style={{ width: '100%', padding: '20px', background: 'linear-gradient(#6366f1, #4f46e5)', color: 'white', border: 'none', borderRadius: '16px', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
             Create New Account
           </button>
-          <textarea value={inputPhrase} onChange={(e) => setInputPhrase(e.target.value)} placeholder="Paste your 12-word keyphrase..." style={{ width: '100%', height: '140px', background: '#1e2937', border: '1px solid #475569', borderRadius: '16px', padding: '16px', color: 'white', marginBottom: '20px' }} />
+          <textarea 
+            value={inputPhrase} 
+            onChange={(e) => setInputPhrase(e.target.value)} 
+            placeholder="Paste your 12-word keyphrase..." 
+            style={{ 
+              width: '100%', 
+              height: '140px', 
+              background: '#1e2937', 
+              border: '2px solid #475569', 
+              borderRadius: '16px', 
+              padding: '18px', 
+              color: 'white', 
+              fontSize: '16px',
+              resize: 'vertical',
+              boxSizing: 'border-box'
+            }} 
+          />
           <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#fcd34d', color: '#1e2937', border: 'none', borderRadius: '16px', fontSize: '18px', fontWeight: 'bold' }}>
             Recover Account
           </button>
