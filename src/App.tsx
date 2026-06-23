@@ -67,10 +67,10 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const directMessage = () => alert("💬 Direct Message (E2EE) - Full chat soon");
+  const directMessage = () => alert("💬 Direct Message (E2EE) coming soon");
   const sendComment = () => {
     if (!commentInput.trim()) return;
-    alert(`💬 Comment: ${commentInput}`);
+    alert(`💬 Comment sent: ${commentInput}`);
     setCommentInput('');
     setActiveCommentId(null);
   };
@@ -117,14 +117,15 @@ function App() {
                 placeholder="What's happening today?" 
                 style={{ 
                   width: '100%', 
-                  minHeight: '130px', 
+                  minHeight: '140px', 
                   background: '#0f172a', 
-                  border: '1px solid #475569', 
+                  border: '2px solid #475569', 
                   borderRadius: '16px', 
-                  padding: '16px', 
+                  padding: '18px', 
                   color: 'white', 
                   fontSize: '18px',
-                  resize: 'vertical'
+                  resize: 'vertical',
+                  boxSizing: 'border-box'
                 }} 
               />
               <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
