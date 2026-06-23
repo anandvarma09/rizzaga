@@ -66,10 +66,6 @@ function App() {
     setNewPost('');
   };
 
-  const savePosts = (posts: any[]) => {
-    if (seedPhrase) localStorage.setItem(`posts_${seedPhrase}`, JSON.stringify(posts));
-  };
-
   const likePost = (id: number) => {
     const updated = myPosts.map(p => p.id === id ? { ...p, likes: 1 } : p);
     setMyPosts(updated);
