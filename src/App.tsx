@@ -16,7 +16,6 @@ function App() {
     if (savedSeed) {
       setIsLoggedIn(true);
       setSeedPhrase(savedSeed);
-      // Load posts for this specific account
       const savedPosts = localStorage.getItem(`posts_${savedSeed}`);
       if (savedPosts) setMyPosts(JSON.parse(savedPosts));
     }
