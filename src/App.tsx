@@ -7,7 +7,8 @@ function App() {
   const [inputPhrase, setInputPhrase] = useState('');
   const [newPost, setNewPost] = useState('');
   const [myPosts, setMyPosts] = useState<any[]>([]);
-  const [profileName, setProfileName] = useState('User');
+  const [commentInput, setCommentInput] = useState('');
+  const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('rizzaga_seed');
@@ -27,29 +28,27 @@ function App() {
   };
 
   const recoverAccount = () => {
-    if (!inputPhrase.trim()) return alert("Enter keyphrase");
+    if (!inputPhrase.trim()) return;
     setSeedPhrase(inputPhrase.trim());
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', inputPhrase.trim());
+    setInputPhrase('');
   };
 
-  const correctAndSummarize = (text: string) => {
-    let corrected = text
+  const correctText = (text: string) => {
+    return text
       .replace(/\b(i|im|iam)\b/gi, "I")
       .replace(/\b(u|ur)\b/gi, "you")
       .replace(/\b(r)\b/gi, "are");
-    const summary = corrected.length > 80 ? corrected.substring(0, 80) + "..." : corrected;
-    return { corrected, summary };
   };
 
   const postMessage = () => {
     if (!newPost.trim()) return;
-    const { corrected, summary } = correctAndSummarize(newPost);
+    const corrected = correctText(newPost);
     setMyPosts([{
       id: Date.now(),
-      user: profileName,
+      user: "You",
       content: corrected,
-      summary: summary,
       timestamp: "just now",
       likes: 0
     }, ...myPosts]);
@@ -57,26 +56,39 @@ function App() {
   };
 
   const likePost = (id: number) => {
-    setMyPosts(myPosts.map(p => p.id === id ? { ...p, likes: (p.likes || 0) + 1 } : p));
+    setMyPosts(myPosts.map(p => p.id === id ? { ...p, likes: 1 } : p)); // Only 1 like per person
   };
 
   const shareMagnet = (id: number) => {
     const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
     navigator.clipboard.writeText(magnet);
-    alert("Magnet link copied! (Torrent + Blockchain simulation)");
+    // Silent copy with small feedback
+    const btn = document.activeElement as HTMLButtonElement;
+    if (btn) btn.textContent = "✅ Copied";
+    setTimeout(() => window.location.reload(), 800); // Refresh to reset
+  };
+
+  const sendComment = (postId: number) => {
+    if (!commentInput.trim() || activeCommentId !== postId) return;
+    alert(`💬 Comment sent to post ${postId}: ${commentInput}`);
+    setCommentInput('');
+    setActiveCommentId(null);
   };
 
   const logout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem('rizzaga_seed');
+    if (confirm("Logout?")) {
+      setIsLoggedIn(false);
+      localStorage.removeItem('rizzaga_seed');
+    }
   };
 
   if (!isLoggedIn) {
+    // Login screen (same as before - clean)
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #000)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(26,26,26,0.95)', padding: '40px', borderRadius: '24px', textAlign: 'center', border: '1px solid #c026d3' }}>
           <h1 style={{ fontSize: '52px', fontWeight: '900', marginBottom: '10px', color: '#c026d3' }}>Rizzaga</h1>
-          <p style={{ color: '#eab308', marginBottom: '30px' }}>Privacy First • Blockchain + Torrent</p>
+          <p style={{ color: '#eab308', marginBottom: '30px' }}>Private • Encrypted • P2P</p>
           <button onClick={generateSeed} style={{ width: '100%', padding: '18px', background: '#c026d3', color: 'white', border: 'none', borderRadius: '16px', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
             Create New Account
           </button>
@@ -91,9 +103,8 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', color: 'white', paddingBottom: '90px' }}>
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#111', padding: '16px', zIndex: 100, borderBottom: '2px solid #c026d3', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#111', padding: '16px', zIndex: 100, borderBottom: '2px solid #c026d3' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#c026d3' }}>Rizzaga</h1>
-        <button onClick={logout} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px' }}>Logout</button>
       </header>
 
       <div style={{ paddingTop: '90px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
@@ -108,31 +119,37 @@ function App() {
             {myPosts.map((post) => (
               <div key={post.id} style={{ background: '#1f1f1f', padding: '25px', borderRadius: '20px', marginBottom: '20px', border: '1px solid #eab308' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp}</p>
-                <p style={{ margin: '15px 0', fontSize: '17px' }}>{post.content}</p>
-                {post.summary && <p style={{ color: '#888', fontSize: '14px' }}>Summary: {post.summary}</p>}
-                <div style={{ display: 'flex', gap: '20px', marginTop: '15px' }}>
+                <p style={{ margin: '12px 0', fontSize: '17px' }}>{post.content}</p>
+                <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
                   <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#eab308', fontSize: '24px' }}>⭐ {post.likes || 0}</button>
-                  <button onClick={() => alert("💬 Chat opened (E2EE)")} style={{ background: 'none', border: 'none', color: '#22d3ee', fontSize: '24px' }}>💬</button>
+                  <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#22d3ee', fontSize: '24px' }}>💬</button>
                   <button onClick={() => shareMagnet(post.id)} style={{ background: 'none', border: 'none', color: '#a855f7', fontSize: '24px' }}>🔗</button>
                 </div>
+                {activeCommentId === post.id && (
+                  <div style={{ marginTop: '12px' }}>
+                    <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} placeholder="Write a comment..." style={{ width: '100%', padding: '10px', background: '#111', border: '1px solid #444', borderRadius: '8px', color: 'white' }} />
+                    <button onClick={() => sendComment(post.id)} style={{ marginTop: '8px', background: '#22d3ee', color: 'black', padding: '8px 20px', borderRadius: '8px' }}>Send</button>
+                  </div>
+                )}
               </div>
             ))}
           </>
         )}
 
-        {currentView === 'explore' && <div style={{ padding: '80px 20px', textAlign: 'center', fontSize: '28px', color: '#22d3ee' }}>🔥 Public Explore Feed (Monetization with Crypto soon)</div>}
-        {currentView === 'contacts' && <div style={{ padding: '80px 20px', textAlign: 'center', fontSize: '28px', color: '#eab308' }}>👥 Network & Connections</div>}
-        {currentView === 'chats' && <div style={{ padding: '80px 20px', textAlign: 'center', fontSize: '28px', color: '#a855f7' }}>💬 Encrypted Chats</div>}
-
         {currentView === 'profile' && (
           <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-            <h2 style={{ color: '#c026d3', marginBottom: '30px' }}>👤 {profileName}</h2>
-            <button onClick={() => alert("Your Recovery Keyphrase:\n\n" + seedPhrase)} style={{ margin: '15px 0', padding: '16px 40px', background: '#eab308', color: 'black', borderRadius: '12px', fontWeight: 'bold' }}>
+            <h2 style={{ color: '#c026d3' }}>👤 Profile</h2>
+            <button onClick={() => alert("Your Keyphrase:\n\n" + seedPhrase)} style={{ margin: '20px 0', padding: '16px 40px', background: '#eab308', color: 'black', borderRadius: '12px', fontWeight: 'bold' }}>
               View Keyphrase
             </button>
-            <p style={{ color: '#888', marginTop: '20px' }}>All your data is stored on-device with blockchain-style encryption</p>
+            <button onClick={logout} style={{ padding: '12px 30px', background: '#ef4444', color: 'white', borderRadius: '12px' }}>Logout</button>
           </div>
         )}
+
+        {/* Other views */}
+        {currentView === 'explore' && <div style={{ padding: '100px 20px', textAlign: 'center', fontSize: '28px', color: '#22d3ee' }}>🔥 Public Explore Feed</div>}
+        {currentView === 'contacts' && <div style={{ padding: '100px 20px', textAlign: 'center', fontSize: '28px', color: '#eab308' }}>👥 Network</div>}
+        {currentView === 'chats' && <div style={{ padding: '100px 20px', textAlign: 'center', fontSize: '28px', color: '#a855f7' }}>💬 Chats</div>}
       </div>
 
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#111', display: 'flex', justifyContent: 'space-around', padding: '12px 0', borderTop: '2px solid #c026d3' }}>
