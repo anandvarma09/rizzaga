@@ -12,7 +12,6 @@ function App() {
   const [commentInput, setCommentInput] = useState('');
   const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
   const [followedUsers, setFollowedUsers] = useState<string[]>([]);
-  const [dmMessages, setDmMessages] = useState<any[]>([]);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -44,27 +43,15 @@ function App() {
     setInputPhrase('');
   };
 
-  const correctAndSummarize = (text: string) => {
-    let corrected = text
-      .replace(/\b(i|im|iam)\b/gi, "I")
-      .replace(/\b(u|ur)\b/gi, "you")
-      .replace(/\b(r)\b/gi, "are");
-    const summary = corrected.length > 100 ? corrected.substring(0, 100) + "..." : corrected;
-    return { corrected, summary };
-  };
+  const correctText = (text: string) => text
+    .replace(/\b(i|im|iam)\b/gi, "I")
+    .replace(/\b(u|ur)\b/gi, "you")
+    .replace(/\b(r)\b/gi, "are");
 
   const postMessage = () => {
     if (!newPost.trim()) return;
-    const { corrected, summary } = correctAndSummarize(newPost);
-    const newEntry = { 
-      id: Date.now(), 
-      user: "You", 
-      content: corrected, 
-      summary,
-      visibility, 
-      timestamp: "just now", 
-      likes: 0 
-    };
+    const corrected = correctText(newPost);
+    const newEntry = { id: Date.now(), user: "You", content: corrected, visibility, timestamp: "just now", likes: 0 };
     const updated = [newEntry, ...myPosts];
     setMyPosts(updated);
     savePosts(updated);
@@ -82,11 +69,7 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const directMessage = () => {
-    alert("💬 Direct Message opened (E2EE + Blockchain simulation) - Type in Chats tab");
-    setCurrentView('chats');
-  };
-
+  const directMessage = () => alert("💬 Direct Message (E2EE) opened - Full chat coming soon");
   const sendComment = () => {
     if (!commentInput.trim()) return;
     alert(`💬 Comment sent: ${commentInput}`);
@@ -166,7 +149,6 @@ function App() {
               <div key={post.id} style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
                 <p style={{ margin: '16px 0', fontSize: '17px', lineHeight: '1.7' }}>{post.content}</p>
-                {post.summary && <p style={{ color: '#94a3b8', fontSize: '14px' }}>Summary: {post.summary}</p>}
                 <div style={{ display: 'flex', gap: '28px', marginTop: '16px' }}>
                   <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '28px' }}>⭐ {post.likes || 0}</button>
                   <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>💬</button>
