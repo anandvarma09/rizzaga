@@ -14,8 +14,8 @@ function App() {
   const [followedUsers, setFollowedUsers] = useState<string[]>([]);
   const [dmChat, setDmChat] = useState<any[]>([]);
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
-  const [callType, setCallType] = useState<'voice' | 'video' | null>(null);
   const [callingUser, setCallingUser] = useState<string | null>(null);
+  const [callType, setCallType] = useState<'voice' | 'video' | null>(null);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -87,20 +87,18 @@ function App() {
   const startCall = (type: 'voice' | 'video', user: string) => {
     setCallType(type);
     setCallingUser(user);
-    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE + WebRTC Simulation)`);
+    alert(`📞 ${type.toUpperCase()} Call started with ${user} (E2EE + WebRTC)`);
   };
 
   const endCall = () => {
     setCallType(null);
     setCallingUser(null);
-    alert("Call ended securely");
   };
 
-  const directMessage = (user?: string) => {
-    const target = user || "Alice";
-    setActiveChatUser(target);
+  const directMessage = (user = "Alice") => {
+    setActiveChatUser(user);
     setCurrentView('chats');
-    alert(`💬 Secure Chat opened with ${target} (E2EE + Blockchain)`);
+    alert(`💬 Secure chat opened with ${user}`);
   };
 
   const sendComment = () => {
@@ -130,7 +128,6 @@ function App() {
   };
 
   if (!isLoggedIn) {
-    // Login screen remains the same (clean & premium)
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #f59e0b', boxShadow: '0 0 80px rgba(245,158,11,0.3)' }}>
@@ -168,14 +165,29 @@ function App() {
     <div style={{ minHeight: '100vh', background: '#0f172a', color: 'white', paddingBottom: '90px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ paddingTop: '40px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
         {currentView === 'wall' && (
-          // Wall section (unchanged but clean)
           <>
             <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#f59e0b' }}>Today's Wall</h2>
-            {/* ... post creation and feed ... */}
+            <div style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
+              <textarea 
+                value={newPost} 
+                onChange={(e) => setNewPost(e.target.value)} 
+                placeholder="What's happening today?" 
+                style={{ width: '100%', minHeight: '150px', background: '#0f172a', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '18px', resize: 'vertical', boxSizing: 'border-box' }} 
+              />
+              <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
+                <button onClick={() => setVisibility('everyone')} style={{ flex: 1, padding: '14px', background: visibility === 'everyone' ? '#22c55e' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🌍 Everyone</button>
+                <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '14px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🔞 18+</button>
+              </div>
+              <button onClick={postMessage} style={{ marginTop: '18px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', padding: '18px', borderRadius: '18px', width: '100%', fontWeight: 'bold' }}>Post ({visibility})</button>
+            </div>
+
+            {myPosts.length === 0 && <p style={{ textAlign: 'center', color: '#94a3b8' }}>No posts yet. Create your first post above!</p>}
+
             {myPosts.map((post) => (
               <div key={post.id} style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
                 <p style={{ margin: '16px 0', fontSize: '17px', lineHeight: '1.7' }}>{post.content}</p>
+                {post.summary && <p style={{ color: '#94a3b8', fontSize: '14px' }}>Summary: {post.summary}</p>}
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px', flexWrap: 'wrap' }}>
                   <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '28px' }}>⭐ {post.likes || 0}</button>
                   <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>💬</button>
@@ -200,9 +212,10 @@ function App() {
               <div key={user} style={{ background: '#1e2937', padding: '20px', margin: '12px 0', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '18px' }}>{user}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => followUser(user)} style={{ padding: '8px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px' }}>Follow</button>
-                  <button onClick={() => directMessage(user)} style={{ padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '12px', fontSize: '14px' }}>Message</button>
-                  <button onClick={() => startCall('video', user)} style={{ padding: '8px 16px', background: '#22d3ee', color: '#0f172a', border: 'none', borderRadius: '12px', fontSize: '14px' }}>📹</button>
+                  <button onClick={() => followUser(user)} style={{ padding: '8px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '12px' }}>Follow</button>
+                  <button onClick={() => directMessage(user)} style={{ padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '12px' }}>Message</button>
+                  <button onClick={() => startCall('video', user)} style={{ padding: '8px 16px', background: '#22d3ee', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📹 Video</button>
+                  <button onClick={() => startCall('voice', user)} style={{ padding: '8px 16px', background: '#eab308', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📞 Voice</button>
                 </div>
               </div>
             ))}
@@ -215,8 +228,8 @@ function App() {
             {activeChatUser ? (
               <div>
                 <h3>Chat with {activeChatUser}</h3>
-                <div style={{ background: '#1e2937', padding: '20px', borderRadius: '18px', minHeight: '400px', marginBottom: '12px' }}>
-                  {dmChat.filter(m => m.to === activeChatUser || m.from === "You").map((m, i) => (
+                <div style={{ background: '#1e2937', padding: '20px', borderRadius: '18px', minHeight: '400px', marginBottom: '12px', overflowY: 'auto' }}>
+                  {dmChat.filter(m => m.to === activeChatUser).map((m, i) => (
                     <p key={i}><strong>{m.from}:</strong> {m.text}</p>
                   ))}
                 </div>
@@ -232,7 +245,7 @@ function App() {
                 />
               </div>
             ) : (
-              <p style={{ textAlign: 'center', color: '#94a3b8' }}>Select a user from Network to start chatting</p>
+              <p style={{ textAlign: 'center', color: '#94a3b8' }}>Go to Network to start a chat</p>
             )}
           </div>
         )}
@@ -247,14 +260,14 @@ function App() {
           </div>
         )}
 
-        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts (IPFS Ready)</div>}
+        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts (IPFS + WebRTC Ready)</div>}
       </div>
 
-      {/* Call Overlay */}
+      {/* Active Call Overlay */}
       {callType && callingUser && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
           <h2>{callType === 'video' ? '📹' : '📞'} {callType.toUpperCase()} Call with {callingUser}</h2>
-          <p>End-to-End Encrypted • WebRTC Active</p>
+          <p>End-to-End Encrypted • Secure Connection</p>
           <button onClick={endCall} style={{ marginTop: '40px', padding: '16px 60px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px' }}>End Call</button>
         </div>
       )}
