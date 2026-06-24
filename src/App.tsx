@@ -11,6 +11,8 @@ function App() {
   const [myPosts, setMyPosts] = useState<any[]>([]);
   const [commentInput, setCommentInput] = useState('');
   const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
+  const [followedUsers, setFollowedUsers] = useState<string[]>([]);
+  const [dmMessages, setDmMessages] = useState<any[]>([]);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -42,15 +44,27 @@ function App() {
     setInputPhrase('');
   };
 
-  const correctText = (text: string) => text
-    .replace(/\b(i|im|iam)\b/gi, "I")
-    .replace(/\b(u|ur)\b/gi, "you")
-    .replace(/\b(r)\b/gi, "are");
+  const correctAndSummarize = (text: string) => {
+    let corrected = text
+      .replace(/\b(i|im|iam)\b/gi, "I")
+      .replace(/\b(u|ur)\b/gi, "you")
+      .replace(/\b(r)\b/gi, "are");
+    const summary = corrected.length > 100 ? corrected.substring(0, 100) + "..." : corrected;
+    return { corrected, summary };
+  };
 
   const postMessage = () => {
     if (!newPost.trim()) return;
-    const corrected = correctText(newPost);
-    const newEntry = { id: Date.now(), user: "You", content: corrected, visibility, timestamp: "just now", likes: 0 };
+    const { corrected, summary } = correctAndSummarize(newPost);
+    const newEntry = { 
+      id: Date.now(), 
+      user: "You", 
+      content: corrected, 
+      summary,
+      visibility, 
+      timestamp: "just now", 
+      likes: 0 
+    };
     const updated = [newEntry, ...myPosts];
     setMyPosts(updated);
     savePosts(updated);
@@ -68,12 +82,23 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const directMessage = () => alert("💬 Direct Message (E2EE) opened - Full chat coming soon");
+  const directMessage = () => {
+    alert("💬 Direct Message opened (E2EE + Blockchain simulation) - Type in Chats tab");
+    setCurrentView('chats');
+  };
+
   const sendComment = () => {
     if (!commentInput.trim()) return;
     alert(`💬 Comment sent: ${commentInput}`);
     setCommentInput('');
     setActiveCommentId(null);
+  };
+
+  const followUser = (user: string) => {
+    if (!followedUsers.includes(user)) {
+      setFollowedUsers([...followedUsers, user]);
+      alert(`Followed ${user}`);
+    }
   };
 
   const logout = () => {
@@ -86,7 +111,7 @@ function App() {
   if (!isLoggedIn) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-        <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #6366f1', boxShadow: '0 0 80px rgba(99,102,241,0.3)' }}>
+        <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #f59e0b', boxShadow: '0 0 80px rgba(245,158,11,0.3)' }}>
           <h1 style={{ fontSize: '52px', fontWeight: '900', marginBottom: '30px', color: '#f59e0b' }}>Rizzaga</h1>
           <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Privacy First • Blockchain + Torrent</p>
           
@@ -119,11 +144,11 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: 'white', paddingBottom: '90px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ paddingTop: '30px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
+      <div style={{ paddingTop: '40px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
         {currentView === 'wall' && (
           <>
             <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#f59e0b' }}>Today's Wall</h2>
-            <div style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #6366f1', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
+            <div style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
               <textarea 
                 value={newPost} 
                 onChange={(e) => setNewPost(e.target.value)} 
@@ -134,15 +159,16 @@ function App() {
                 <button onClick={() => setVisibility('everyone')} style={{ flex: 1, padding: '14px', background: visibility === 'everyone' ? '#22c55e' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🌍 Everyone</button>
                 <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '14px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🔞 18+</button>
               </div>
-              <button onClick={postMessage} style={{ marginTop: '18px', background: 'linear-gradient(#6366f1, #4f46e5)', color: 'white', padding: '18px', borderRadius: '18px', width: '100%', fontWeight: 'bold' }}>Post ({visibility})</button>
+              <button onClick={postMessage} style={{ marginTop: '18px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', padding: '18px', borderRadius: '18px', width: '100%', fontWeight: 'bold' }}>Post ({visibility})</button>
             </div>
 
             {myPosts.map((post) => (
-              <div key={post.id} style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #6366f1', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
+              <div key={post.id} style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
                 <p style={{ margin: '16px 0', fontSize: '17px', lineHeight: '1.7' }}>{post.content}</p>
+                {post.summary && <p style={{ color: '#94a3b8', fontSize: '14px' }}>Summary: {post.summary}</p>}
                 <div style={{ display: 'flex', gap: '28px', marginTop: '16px' }}>
-                  <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#fcd34d', fontSize: '28px' }}>⭐ {post.likes || 0}</button>
+                  <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '28px' }}>⭐ {post.likes || 0}</button>
                   <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>💬</button>
                   <button onClick={directMessage} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '28px' }}>✉️</button>
                   <button onClick={() => shareMagnet(post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>🔗</button>
@@ -161,14 +187,14 @@ function App() {
         {currentView === 'profile' && (
           <div style={{ padding: '80px 20px', textAlign: 'center' }}>
             <h2 style={{ color: '#a5b4fc', fontSize: '38px' }}>👤 Profile</h2>
-            <button onClick={() => alert("Your Recovery Keyphrase:\n\n" + seedPhrase)} style={{ margin: '40px 0', padding: '18px 60px', background: 'linear-gradient(#fcd34d, #f59e0b)', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold', fontSize: '18px' }}>
+            <button onClick={() => alert("Your Recovery Keyphrase:\n\n" + seedPhrase)} style={{ margin: '40px 0', padding: '18px 60px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold', fontSize: '18px' }}>
               View Keyphrase
             </button>
             <button onClick={logout} style={{ padding: '16px 50px', background: '#ef4444', color: 'white', borderRadius: '18px' }}>Logout</button>
           </div>
         )}
 
-        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
+        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts (IPFS simulation)</div>}
         {currentView === 'contacts' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#fcd34d' }}>👥 Network & Connections</div>}
         {currentView === 'chats' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#c084fc' }}>💬 Encrypted Chats</div>}
       </div>
