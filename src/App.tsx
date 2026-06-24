@@ -88,7 +88,7 @@ function App() {
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #6366f1', boxShadow: '0 0 80px rgba(99,102,241,0.3)' }}>
           <h1 style={{ fontSize: '52px', fontWeight: '900', marginBottom: '30px', color: '#f59e0b' }}>Rizzaga</h1>
-          <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Secure • Private • Yours</p>
+          <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Privacy First • Blockchain + Torrent</p>
           
           <div style={{ marginBottom: '30px' }}>
             <p style={{ marginBottom: '12px', color: '#e0e7ff' }}>Your Age Group</p>
@@ -119,14 +119,10 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: 'white', paddingBottom: '90px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', padding: '18px', zIndex: 100, borderBottom: '1px solid #334155', backdropFilter: 'blur(12px)' }}>
-        <h1 style={{ fontSize: '30px', fontWeight: '900', color: '#f59e0b', textAlign: 'center', letterSpacing: '-1px' }}>Rizzaga</h1>
-      </header>
-
-      <div style={{ paddingTop: '100px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
+      <div style={{ paddingTop: '30px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
         {currentView === 'wall' && (
           <>
-            <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#fcd34d' }}>Today's Wall</h2>
+            <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#f59e0b' }}>Today's Wall</h2>
             <div style={{ background: '#1e2937', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #6366f1', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
               <textarea 
                 value={newPost} 
