@@ -68,7 +68,7 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const directMessage = () => alert("💬 Direct Message opened (E2EE) - Full chat coming soon");
+  const directMessage = () => alert("💬 Direct Message (E2EE) - Full chat coming soon");
   const sendComment = () => {
     if (!commentInput.trim()) return;
     alert(`💬 Comment sent: ${commentInput}`);
@@ -86,9 +86,12 @@ function App() {
   if (!isLoggedIn) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-        <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.95)', padding: '50px 40px', borderRadius: '28px', textAlign: 'center', border: '1px solid #6366f1', boxShadow: '0 0 60px rgba(99,102,241,0.4)' }}>
-          <h1 style={{ fontSize: '56px', fontWeight: '900', marginBottom: '8px', background: 'linear-gradient(to right, #fcd34d, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Rizzaga</h1>
-          <p style={{ color: '#fcd34d', marginBottom: '30px', fontSize: '18px' }}>Privacy First • Blockchain + Torrent</p>
+        <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #6366f1', boxShadow: '0 0 80px rgba(99,102,241,0.3)' }}>
+          <div style={{ marginBottom: '30px' }}>
+            <div style={{ fontSize: '68px', fontWeight: '900', color: '#f59e0b', marginBottom: '8px', letterSpacing: '-2px' }}>R</div>
+            <h1 style={{ fontSize: '48px', fontWeight: '900', color: '#f59e0b', margin: '0' }}>Rizzaga</h1>
+          </div>
+          <p style={{ color: '#fcd34d', marginBottom: '40px', fontSize: '18px' }}>Privacy First • Blockchain + Torrent</p>
           
           <div style={{ marginBottom: '25px' }}>
             <p style={{ marginBottom: '10px', color: '#e0e7ff' }}>Your Age Group:</p>
@@ -131,7 +134,7 @@ function App() {
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: 'white', paddingBottom: '90px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <header style={{ position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', padding: '16px', zIndex: 100, borderBottom: '2px solid #6366f1', backdropFilter: 'blur(12px)' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#a5b4fc' }}>Rizzaga</h1>
+        <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#f59e0b', textAlign: 'center' }}>Rizzaga</h1>
       </header>
 
       <div style={{ paddingTop: '90px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
