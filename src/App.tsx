@@ -32,15 +32,13 @@ function App() {
     setSeedPhrase(phrase);
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', phrase);
-    alert("✅ New Account Created!\n\nSave this 12-word keyphrase safely.");
   };
 
   const recoverAccount = () => {
-    if (!inputPhrase.trim()) return alert("Please enter your keyphrase");
+    if (!inputPhrase.trim()) return alert("Please enter keyphrase");
     setSeedPhrase(inputPhrase.trim());
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', inputPhrase.trim());
-    alert("✅ Account Recovered Successfully!");
     setInputPhrase('');
   };
 
@@ -70,7 +68,7 @@ function App() {
     navigator.clipboard.writeText(magnet);
   };
 
-  const directMessage = () => alert("💬 Direct Message (E2EE) - Full chat coming soon");
+  const directMessage = () => alert("💬 Direct Message (E2EE) opened - Full chat coming soon");
   const sendComment = () => {
     if (!commentInput.trim()) return;
     alert(`💬 Comment sent: ${commentInput}`);
@@ -90,7 +88,7 @@ function App() {
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #6366f1', boxShadow: '0 0 80px rgba(99,102,241,0.3)' }}>
           <h1 style={{ fontSize: '52px', fontWeight: '900', marginBottom: '30px', color: '#f59e0b' }}>Rizzaga</h1>
-          <p style={{ color: '#fcd34d', marginBottom: '40px', fontSize: '18px' }}>Secure • Private • Yours</p>
+          <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Secure • Private • Yours</p>
           
           <div style={{ marginBottom: '30px' }}>
             <p style={{ marginBottom: '12px', color: '#e0e7ff' }}>Your Age Group</p>
@@ -100,7 +98,7 @@ function App() {
             </div>
           </div>
 
-          <button onClick={generateSeed} style={{ width: '100%', padding: '20px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', border: 'none', borderRadius: '16px', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
+          <button onClick={generateSeed} style={{ width: '100%', padding: '20px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', border: 'none', borderRadius: '18px', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>
             Create New Account
           </button>
           
@@ -108,21 +106,10 @@ function App() {
             value={inputPhrase} 
             onChange={(e) => setInputPhrase(e.target.value)} 
             placeholder="Paste your 12-word keyphrase to recover..." 
-            style={{ 
-              width: '100%', 
-              height: '140px', 
-              background: '#1e2937', 
-              border: '2px solid #475569', 
-              borderRadius: '16px', 
-              padding: '18px', 
-              color: 'white', 
-              fontSize: '16px',
-              resize: 'vertical',
-              boxSizing: 'border-box'
-            }} 
+            style={{ width: '100%', height: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '16px', resize: 'vertical', boxSizing: 'border-box' }} 
           />
           
-          <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '16px', fontSize: '18px', fontWeight: 'bold' }}>
+          <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px', fontWeight: 'bold' }}>
             Recover Account
           </button>
         </div>
@@ -145,24 +132,13 @@ function App() {
                 value={newPost} 
                 onChange={(e) => setNewPost(e.target.value)} 
                 placeholder="What's happening today?" 
-                style={{ 
-                  width: '100%', 
-                  minHeight: '150px', 
-                  background: '#0f172a', 
-                  border: '2px solid #475569', 
-                  borderRadius: '18px', 
-                  padding: '20px', 
-                  color: 'white', 
-                  fontSize: '18px',
-                  resize: 'vertical',
-                  boxSizing: 'border-box'
-                }} 
+                style={{ width: '100%', minHeight: '150px', background: '#0f172a', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '18px', resize: 'vertical', boxSizing: 'border-box' }} 
               />
               <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
                 <button onClick={() => setVisibility('everyone')} style={{ flex: 1, padding: '14px', background: visibility === 'everyone' ? '#22c55e' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🌍 Everyone</button>
                 <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '14px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🔞 18+</button>
               </div>
-              <button onClick={postMessage} style={{ marginTop: '18px', background: 'linear-gradient(#6366f1, #4f46e5)', color: 'white', padding: '18px', borderRadius: '18px', width: '100%', fontWeight: 'bold', fontSize: '17px' }}>Post ({visibility})</button>
+              <button onClick={postMessage} style={{ marginTop: '18px', background: 'linear-gradient(#6366f1, #4f46e5)', color: 'white', padding: '18px', borderRadius: '18px', width: '100%', fontWeight: 'bold' }}>Post ({visibility})</button>
             </div>
 
             {myPosts.map((post) => (
