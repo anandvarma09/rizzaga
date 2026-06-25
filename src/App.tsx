@@ -9,7 +9,6 @@ function App() {
   const [inputPhrase, setInputPhrase] = useState('');
   const [newPost, setNewPost] = useState('');
   const [visibility, setVisibility] = useState<'everyone' | '18+'>('everyone');
-  const [ageGroup, setAgeGroup] = useState<'under18' | '18plus'>('18plus');
   const [myPosts, setMyPosts] = useState<any[]>([]);
   const [commentInput, setCommentInput] = useState('');
   const [activeCommentId, setActiveCommentId] = useState<number | null>(null);
@@ -20,6 +19,7 @@ function App() {
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
+  const [notifications, setNotifications] = useState(3);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -66,12 +66,12 @@ function App() {
   };
 
   const regenerateKeyphrase = () => {
-    if (!confirm("Generate new keyphrase? Old one will be replaced.")) return;
+    if (!confirm("Generate new keyphrase?")) return;
     const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act"];
     const newPhrase = Array.from({length:12}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
     setSeedPhrase(newPhrase);
     localStorage.setItem('rizzaga_seed', newPhrase);
-    alert("✅ New keyphrase generated and saved. Store it safely!");
+    alert("✅ New keyphrase generated!");
   };
 
   const correctText = (text: string) => text
@@ -127,11 +127,7 @@ function App() {
   const shareMagnet = (id: number) => {
     const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
     navigator.clipboard.writeText(magnet);
-    alert("🔗 Magnet link copied! (Torrent + Blockchain + IPFS)");
-  };
-
-  const startCall = (type: 'voice' | 'video', user: string) => {
-    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE + WebRTC Simulation)`);
+    alert("🔗 Magnet link copied!");
   };
 
   const directMessage = (user: string) => {
@@ -256,7 +252,7 @@ function App() {
 
         {currentView === 'chats' && (
           <div style={{ padding: '40px 20px' }}>
-            <h2 style={{ textAlign: 'center', color: '#c084fc' }}>💬 Encrypted Chats</h2>
+            <h2 style={{ textAlign: 'center', color: '#c084fc' }}>💬 Chats</h2>
             {activeChatUser ? (
               <div>
                 <h3 style={{ color: '#f59e0b' }}>Chat with {activeChatUser}</h3>
@@ -265,7 +261,16 @@ function App() {
                 </div>
                 <input onKeyPress={(e) => { if (e.key === 'Enter' && e.currentTarget.value.trim()) { sendDM(e.currentTarget.value); e.currentTarget.value = ''; } }} placeholder="Type secure message..." style={{ width: '100%', padding: '16px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white' }} />
               </div>
-            ) : <p style={{ textAlign: 'center', color: '#94a3b8' }}>Select user from Network</p>}
+            ) : (
+              <div>
+                <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '20px' }}>Your Chats</p>
+                {Object.keys(dmChats).length > 0 ? Object.keys(dmChats).map(user => (
+                  <div key={user} onClick={() => directMessage(user)} style={{ background: 'rgba(30,41,55,0.95)', padding: '18px', margin: '10px 0', borderRadius: '18px', cursor: 'pointer', border: '1px solid #6366f1' }}>
+                    {user}
+                  </div>
+                )) : <p style={{ textAlign: 'center', color: '#94a3b8' }}>No chats yet. Go to Network to start one.</p>}
+              </div>
+            )}
           </div>
         )}
 
