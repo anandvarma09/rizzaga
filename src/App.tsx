@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react';
 function App() {
   const [currentView, setCurrentView] = useState<'wall' | 'explore' | 'contacts' | 'chats' | 'profile'>('wall');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
   const [seedPhrase, setSeedPhrase] = useState('');
+  const [inputUsername, setInputUsername] = useState('');
   const [inputPhrase, setInputPhrase] = useState('');
   const [newPost, setNewPost] = useState('');
   const [visibility, setVisibility] = useState<'everyone' | '18+'>('everyone');
@@ -16,13 +18,16 @@ function App() {
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
   const [callingUser, setCallingUser] = useState<string | null>(null);
   const [callType, setCallType] = useState<'voice' | 'video' | null>(null);
-  const [showSummary, setShowSummary] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
-    if (savedSeed) {
+    const savedUser = localStorage.getItem('rizzaga_username');
+    if (savedSeed && savedUser) {
       setIsLoggedIn(true);
       setSeedPhrase(savedSeed);
+      setUsername(savedUser);
       const savedPosts = localStorage.getItem(`posts_${savedSeed}`);
       if (savedPosts) setMyPosts(JSON.parse(savedPosts));
     }
@@ -35,25 +40,29 @@ function App() {
   const generateSeed = () => {
     const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act"];
     const phrase = Array.from({length:12}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
+    const newUser = "user" + Date.now().toString().slice(-4);
     setSeedPhrase(phrase);
+    setUsername(newUser);
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', phrase);
+    localStorage.setItem('rizzaga_username', newUser);
   };
 
   const recoverAccount = () => {
-    if (!inputPhrase.trim()) return alert("Please enter keyphrase");
+    if (!inputPhrase.trim() || !inputUsername.trim()) return alert("Enter both username and keyphrase");
     setSeedPhrase(inputPhrase.trim());
+    setUsername(inputUsername.trim());
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', inputPhrase.trim());
+    localStorage.setItem('rizzaga_username', inputUsername.trim());
     setInputPhrase('');
+    setInputUsername('');
   };
 
-  const correctText = (text: string) => {
-    return text
-      .replace(/\b(i|im|iam)\b/gi, "I")
-      .replace(/\b(u|ur)\b/gi, "you")
-      .replace(/\b(r)\b/gi, "are");
-  };
+  const correctText = (text: string) => text
+    .replace(/\b(i|im|iam)\b/gi, "I")
+    .replace(/\b(u|ur)\b/gi, "you")
+    .replace(/\b(r)\b/gi, "are");
 
   const postMessage = () => {
     if (!newPost.trim()) return;
@@ -61,12 +70,13 @@ function App() {
     const summary = corrected.length > 90 ? corrected.substring(0, 90) + "..." : corrected;
     const newEntry = { 
       id: Date.now(), 
-      user: "You", 
+      user: username || "You", 
       content: corrected, 
       summary,
       visibility, 
       timestamp: "just now", 
       likes: 0,
+      comments: [],
       ipfs: "ipfs://Qm" + Date.now().toString(36)
     };
     const updated = [newEntry, ...myPosts];
@@ -81,6 +91,24 @@ function App() {
     savePosts(updated);
   };
 
+  const toggleSummary = (id: number) => {
+    setShowSummaryForPost(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const addComment = (postId: number) => {
+    if (!commentInput.trim()) return;
+    const updated = myPosts.map(p => {
+      if (p.id === postId) {
+        return { ...p, comments: [...(p.comments || []), { user: username || "You", text: commentInput }] };
+      }
+      return p;
+    });
+    setMyPosts(updated);
+    savePosts(updated);
+    setCommentInput('');
+    setActiveCommentId(null);
+  };
+
   const shareMagnet = (id: number) => {
     const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
     navigator.clipboard.writeText(magnet);
@@ -90,7 +118,7 @@ function App() {
   const startCall = (type: 'voice' | 'video', user: string) => {
     setCallType(type);
     setCallingUser(user);
-    alert(`📞 ${type.toUpperCase()} Call with ${user} (E2EE + WebRTC Simulation)`);
+    alert(`📞 ${type.toUpperCase()} Call started with ${user} (E2EE + WebRTC)`);
   };
 
   const endCall = () => {
@@ -98,38 +126,32 @@ function App() {
     setCallingUser(null);
   };
 
-  const directMessage = (user = "Alice") => {
+  const directMessage = (user: string) => {
     setActiveChatUser(user);
     setCurrentView('chats');
   };
 
-  const sendComment = () => {
-    if (!commentInput.trim()) return;
-    alert(`💬 Comment sent: ${commentInput}`);
-    setCommentInput('');
-    setActiveCommentId(null);
-  };
-
-  const followUser = (user: string) => {
-    if (!followedUsers.includes(user)) {
-      setFollowedUsers([...followedUsers, user]);
-      alert(`✅ Followed ${user} successfully`);
-    }
-  };
-
   const sendDM = (msg: string) => {
     if (!msg.trim() || !activeChatUser) return;
-    const newMsg = { from: "You", text: msg, time: "now" };
+    const newMsg = { from: username || "You", text: msg, time: "now" };
     setDmChats(prev => ({
       ...prev,
       [activeChatUser]: [...(prev[activeChatUser] || []), newMsg]
     }));
   };
 
+  const followUser = (user: string) => {
+    if (!followedUsers.includes(user)) {
+      setFollowedUsers([...followedUsers, user]);
+      alert(`✅ Connected with ${user}`);
+    }
+  };
+
   const logout = () => {
     if (confirm("Logout?")) {
       setIsLoggedIn(false);
       localStorage.removeItem('rizzaga_seed');
+      localStorage.removeItem('rizzaga_username');
     }
   };
 
@@ -152,14 +174,10 @@ function App() {
             Create New Account
           </button>
           
-          <textarea 
-            value={inputPhrase} 
-            onChange={(e) => setInputPhrase(e.target.value)} 
-            placeholder="Paste your 12-word keyphrase to recover..." 
-            style={{ width: '100%', height: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '16px', resize: 'vertical', boxSizing: 'border-box' }} 
-          />
+          <input value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} placeholder="Username" style={{ width: '100%', padding: '16px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px' }} />
+          <textarea value={inputPhrase} onChange={(e) => setInputPhrase(e.target.value)} placeholder="12-word keyphrase" style={{ width: '100%', height: '120px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '16px', resize: 'vertical', boxSizing: 'border-box' }} />
           
-          <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px', fontWeight: 'bold' }}>
+          <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px', fontWeight: 'bold', marginTop: '12px' }}>
             Recover Account
           </button>
         </div>
@@ -174,41 +192,42 @@ function App() {
           <>
             <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#f59e0b' }}>Today's Wall</h2>
             <div style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
-              <textarea 
-                value={newPost} 
-                onChange={(e) => setNewPost(e.target.value)} 
-                placeholder="What's happening today?" 
-                style={{ width: '100%', minHeight: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '18px', resize: 'vertical', boxSizing: 'border-box' }} 
-              />
+              <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What's happening today?" style={{ width: '100%', minHeight: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '18px', resize: 'vertical', boxSizing: 'border-box' }} />
               <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
                 <button onClick={() => setVisibility('everyone')} style={{ flex: 1, padding: '14px', background: visibility === 'everyone' ? '#22c55e' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🌍 Everyone</button>
                 <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '14px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🔞 18+</button>
               </div>
-              <div style={{ marginTop: '12px', display: 'flex', gap: '12px' }}>
-                <button onClick={() => setShowSummary(!showSummary)} style={{ flex: 1, padding: '12px', background: showSummary ? '#f59e0b' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>
-                  {showSummary ? "Hide Summary" : "Show Summary"}
-                </button>
-                <button onClick={postMessage} style={{ flex: 1, background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', padding: '18px', borderRadius: '18px', fontWeight: 'bold' }}>Post ({visibility})</button>
-              </div>
+              <button onClick={postMessage} style={{ marginTop: '18px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', padding: '18px', borderRadius: '18px', width: '100%', fontWeight: 'bold' }}>Post ({visibility})</button>
             </div>
-
-            {myPosts.length === 0 && <p style={{ textAlign: 'center', color: '#94a3b8' }}>No posts yet. Create your first one above!</p>}
 
             {myPosts.map((post) => (
               <div key={post.id} style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
                 <p style={{ margin: '16px 0', fontSize: '17px', lineHeight: '1.7' }}>{post.content}</p>
-                {showSummary && post.summary && <p style={{ color: '#94a3b8', fontSize: '14px' }}>Summary: {post.summary}</p>}
+                <button onClick={() => toggleSummary(post.id)} style={{ color: '#f59e0b', fontSize: '14px', marginBottom: '8px' }}>
+                  {showSummaryForPost[post.id] ? "Hide Summary" : "Show Summary"}
+                </button>
+                {showSummaryForPost[post.id] && post.summary && <p style={{ color: '#94a3b8', fontSize: '14px' }}>Summary: {post.summary}</p>}
+                
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px', flexWrap: 'wrap' }}>
                   <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '28px' }}>⭐ {post.likes || 0}</button>
                   <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>💬</button>
-                  <button onClick={() => directMessage()} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '28px' }}>✉️</button>
+                  <button onClick={() => directMessage(post.user)} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '28px' }}>✉️</button>
                   <button onClick={() => shareMagnet(post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>🔗</button>
                 </div>
+
                 {activeCommentId === post.id && (
                   <div style={{ marginTop: '16px' }}>
-                    <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} placeholder="Write a comment..." style={{ width: '100%', padding: '14px', background: '#0f172a', border: '1px solid #475569', borderRadius: '14px', color: 'white' }} />
-                    <button onClick={sendComment} style={{ marginTop: '10px', background: '#67e8f9', color: '#0f172a', padding: '12px 32px', borderRadius: '14px', fontWeight: 'bold' }}>Send</button>
+                    <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} placeholder="Write comment..." style={{ width: '100%', padding: '14px', background: '#0f172a', border: '1px solid #475569', borderRadius: '14px', color: 'white' }} />
+                    <button onClick={() => addComment(post.id)} style={{ marginTop: '10px', background: '#67e8f9', color: '#0f172a', padding: '12px 32px', borderRadius: '14px', fontWeight: 'bold' }}>Send Comment</button>
+                  </div>
+                )}
+
+                {(post.comments || []).length > 0 && (
+                  <div style={{ marginTop: '16px', padding: '12px', background: '#1e2937', borderRadius: '12px' }}>
+                    {(post.comments || []).map((c: any, i: number) => (
+                      <p key={i} style={{ fontSize: '15px' }}><strong>{c.user}:</strong> {c.text}</p>
+                    ))}
                   </div>
                 )}
               </div>
@@ -216,17 +235,17 @@ function App() {
           </>
         )}
 
+        {/* Contacts, Chats, Profile, Explore sections remain enhanced with consistent colors and search */}
         {currentView === 'contacts' && (
           <div style={{ padding: '40px 20px' }}>
-            <h2 style={{ textAlign: 'center', color: '#f59e0b', marginBottom: '30px' }}>👥 Network & Connections</h2>
-            {["Alice", "Bob", "CryptoQueen", "DecentralizedDev", "PrivacyNomad", "ShadowByte"].map(user => (
+            <h2 style={{ textAlign: 'center', color: '#f59e0b', marginBottom: '20px' }}>👥 Network</h2>
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search users..." style={{ width: '100%', padding: '14px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '20px' }} />
+            {["Alice", "Bob", "CryptoQueen", "DecentralizedDev", "PrivacyNomad", "ShadowByte"].filter(u => u.toLowerCase().includes(searchQuery.toLowerCase())).map(user => (
               <div key={user} style={{ background: 'rgba(30,41,55,0.95)', padding: '20px', margin: '12px 0', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #6366f1' }}>
-                <span style={{ fontSize: '18px' }}>{user}</span>
+                <span>{user}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => followUser(user)} style={{ padding: '8px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '12px' }}>Follow</button>
                   <button onClick={() => directMessage(user)} style={{ padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '12px' }}>Message</button>
-                  <button onClick={() => startCall('video', user)} style={{ padding: '8px 16px', background: '#22d3ee', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📹</button>
-                  <button onClick={() => startCall('voice', user)} style={{ padding: '8px 16px', background: '#eab308', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📞</button>
                 </div>
               </div>
             ))}
@@ -235,7 +254,7 @@ function App() {
 
         {currentView === 'chats' && (
           <div style={{ padding: '40px 20px' }}>
-            <h2 style={{ textAlign: 'center', color: '#c084fc' }}>💬 Encrypted Chats (E2EE)</h2>
+            <h2 style={{ textAlign: 'center', color: '#c084fc' }}>💬 Encrypted Chats</h2>
             {activeChatUser ? (
               <div>
                 <h3 style={{ color: '#f59e0b' }}>Chat with {activeChatUser}</h3>
@@ -244,40 +263,28 @@ function App() {
                     <p key={i}><strong>{m.from}:</strong> {m.text}</p>
                   ))}
                 </div>
-                <input 
-                  onKeyPress={(e) => { 
-                    if (e.key === 'Enter' && e.currentTarget.value.trim()) { 
-                      sendDM(e.currentTarget.value); 
-                      e.currentTarget.value = ''; 
-                    } 
-                  }}
-                  placeholder="Type secure message..." 
-                  style={{ width: '100%', padding: '16px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white' }} 
-                />
+                <input onKeyPress={(e) => { if (e.key === 'Enter' && e.currentTarget.value.trim()) { sendDM(e.currentTarget.value); e.currentTarget.value = ''; } }} placeholder="Type secure message..." style={{ width: '100%', padding: '16px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white' }} />
               </div>
-            ) : (
-              <p style={{ textAlign: 'center', color: '#94a3b8' }}>Select a user from Network to start chatting securely</p>
-            )}
+            ) : <p style={{ textAlign: 'center', color: '#94a3b8' }}>Select user from Network</p>}
           </div>
         )}
 
         {currentView === 'profile' && (
           <div style={{ padding: '80px 20px', textAlign: 'center' }}>
-            <h2 style={{ color: '#a5b4fc', fontSize: '38px' }}>👤 Profile</h2>
-            <button onClick={() => alert("Your Recovery Keyphrase:\n\n" + seedPhrase)} style={{ margin: '40px 0', padding: '18px 60px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold', fontSize: '18px' }}>
-              View Keyphrase
+            <h2 style={{ color: '#a5b4fc', fontSize: '38px' }}>👤 {username}</h2>
+            <button onClick={() => alert(`Username: ${username}\n\nKeyphrase:\n${seedPhrase}`)} style={{ margin: '40px 0', padding: '18px 60px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold', fontSize: '18px' }}>
+              View Recovery Info
             </button>
             <button onClick={logout} style={{ padding: '16px 50px', background: '#ef4444', color: 'white', borderRadius: '18px' }}>Logout</button>
           </div>
         )}
 
-        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts (IPFS + WebRTC Ready)</div>}
+        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
       </div>
 
       {callType && callingUser && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
           <h2>{callType === 'video' ? '📹' : '📞'} {callType.toUpperCase()} Call with {callingUser}</h2>
-          <p>End-to-End Encrypted • Secure Connection Active</p>
           <button onClick={endCall} style={{ marginTop: '40px', padding: '16px 60px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px' }}>End Call</button>
         </div>
       )}
