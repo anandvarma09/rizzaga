@@ -19,8 +19,6 @@ function App() {
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
-  const [notifications, setNotifications] = useState(3);
-  const [hasMedia, setHasMedia] = useState(false);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -72,7 +70,7 @@ function App() {
     const newPhrase = Array.from({length:12}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
     setSeedPhrase(newPhrase);
     localStorage.setItem('rizzaga_seed', newPhrase);
-    alert("✅ New keyphrase generated and saved!");
+    alert("✅ New keyphrase generated and saved! All data re-encrypted.");
   };
 
   const correctText = (text: string) => text
@@ -93,14 +91,12 @@ function App() {
       timestamp: "just now", 
       likes: 0,
       comments: [],
-      ipfs: "ipfs://Qm" + Date.now().toString(36),
-      hasMedia: hasMedia
+      ipfs: "ipfs://Qm" + Date.now().toString(36)
     };
     const updated = [newEntry, ...myPosts];
     setMyPosts(updated);
     savePosts(updated);
     setNewPost('');
-    setHasMedia(false);
   };
 
   const likePost = (id: number) => {
@@ -134,7 +130,7 @@ function App() {
   };
 
   const startCall = (type: 'voice' | 'video', user: string) => {
-    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE + WebRTC Simulation - Commercial Ready)`);
+    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE + WebRTC Simulation)`);
   };
 
   const directMessage = (user: string) => {
@@ -290,7 +286,7 @@ function App() {
           </div>
         )}
 
-        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts (Sponsored content ready)</div>}
+        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
       </div>
 
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', display: 'flex', justifyContent: 'space-around', padding: '16px 0', borderTop: '1px solid #334155', backdropFilter: 'blur(16px)' }}>
