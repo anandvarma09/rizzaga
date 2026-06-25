@@ -19,7 +19,6 @@ function App() {
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
-  const [notifications, setNotifications] = useState(3);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -128,6 +127,10 @@ function App() {
     const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
     navigator.clipboard.writeText(magnet);
     alert("🔗 Magnet link copied!");
+  };
+
+  const startCall = (type: 'voice' | 'video', user: string) => {
+    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE + WebRTC Simulation)`);
   };
 
   const directMessage = (user: string) => {
