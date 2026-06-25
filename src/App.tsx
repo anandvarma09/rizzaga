@@ -176,13 +176,13 @@ function App() {
 
           {showCreate ? (
             <div>
-              <input value={inputUsername} onChange={(e) => { setInputUsername(e.target.value); checkUsername(e.target.value); }} placeholder="Choose username" style={{ width: '100%', padding: '18px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px', fontSize: '16px' }} />
+              <input value={inputUsername} onChange={(e) => { setInputUsername(e.target.value); checkUsername(e.target.value); }} placeholder="Choose username" style={{ width: '100%', padding: '18px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px', fontSize: '16px', boxSizing: 'border-box' }} />
               {inputUsername && <p style={{ color: usernameAvailable ? '#22c55e' : '#ef4444', fontSize: '14px', marginBottom: '12px' }}>{usernameAvailable ? "✅ Available" : "❌ Taken"}</p>}
               <button onClick={generateSeed} style={{ width: '100%', padding: '20px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', border: 'none', borderRadius: '18px', marginBottom: '20px', fontSize: '18px', fontWeight: 'bold' }}>Create New Account</button>
             </div>
           ) : (
             <div>
-              <input value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} placeholder="Username" style={{ width: '100%', padding: '18px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px', fontSize: '16px' }} />
+              <input value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} placeholder="Username" style={{ width: '100%', padding: '18px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px', fontSize: '16px', boxSizing: 'border-box' }} />
               <textarea value={inputPhrase} onChange={(e) => setInputPhrase(e.target.value)} placeholder="12-word keyphrase" style={{ width: '100%', height: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '16px', resize: 'vertical', boxSizing: 'border-box' }} />
               <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px', fontWeight: 'bold' }}>Recover Account</button>
             </div>
@@ -262,7 +262,7 @@ function App() {
                 <div style={{ background: 'rgba(30,41,55,0.95)', padding: '20px', borderRadius: '18px', minHeight: '400px', marginBottom: '12px', overflowY: 'auto', border: '1px solid #6366f1' }}>
                   {(dmChats[activeChatUser] || []).map((m, i) => <p key={i}><strong>{m.from}:</strong> {m.text}</p>)}
                 </div>
-                <input onKeyPress={(e) => { if (e.key === 'Enter' && e.currentTarget.value.trim()) { sendDM(e.currentTarget.value); e.currentTarget.value = ''; } }} placeholder="Type secure message..." style={{ width: '100%', padding: '16px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white' }} />
+                <input onKeyPress={(e) => { if (e.key === 'Enter' && e.currentTarget.value.trim()) { sendDM(e.currentTarget.value); e.currentTarget.value = ''; } }} placeholder="Type secure message..." style={{ width: '100%', padding: '16px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white', boxSizing: 'border-box' }} />
               </div>
             ) : (
               <div>
