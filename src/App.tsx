@@ -16,8 +16,6 @@ function App() {
   const [followedUsers, setFollowedUsers] = useState<string[]>([]);
   const [dmChats, setDmChats] = useState<Record<string, any[]>>({});
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
-  const [callingUser, setCallingUser] = useState<string | null>(null);
-  const [callType, setCallType] = useState<'voice' | 'video' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
@@ -39,8 +37,8 @@ function App() {
   };
 
   const checkUsername = (name: string) => {
-    // Simulated check
-    setUsernameAvailable(!["admin", "test", "alice", "bob"].includes(name.toLowerCase()));
+    const taken = ["admin", "test", "alice", "bob", "cryptoqueen"].includes(name.toLowerCase());
+    setUsernameAvailable(!taken);
   };
 
   const generateSeed = () => {
@@ -55,6 +53,7 @@ function App() {
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', phrase);
     localStorage.setItem('rizzaga_username', inputUsername.trim());
+    setInputUsername('');
   };
 
   const recoverAccount = () => {
@@ -124,17 +123,6 @@ function App() {
     alert("🔗 Magnet link copied! (Torrent + Blockchain + IPFS)");
   };
 
-  const startCall = (type: 'voice' | 'video', user: string) => {
-    setCallType(type);
-    setCallingUser(user);
-    alert(`📞 ${type.toUpperCase()} Call with ${user} (E2EE + WebRTC)`);
-  };
-
-  const endCall = () => {
-    setCallType(null);
-    setCallingUser(null);
-  };
-
   const directMessage = (user: string) => {
     setActiveChatUser(user);
     setCurrentView('chats');
@@ -186,11 +174,11 @@ function App() {
               checkUsername(e.target.value); 
             }} 
             placeholder="Choose username" 
-            style={{ width: '100%', padding: '16px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px' }} 
+            style={{ width: '100%', padding: '18px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px', fontSize: '16px' }} 
           />
           {inputUsername && (
             <p style={{ color: usernameAvailable ? '#22c55e' : '#ef4444', fontSize: '14px', marginBottom: '12px' }}>
-              {usernameAvailable ? "✅ Available" : "❌ Taken"}
+              {usernameAvailable ? "✅ Available" : "❌ Taken - Try another"}
             </p>
           )}
 
@@ -269,7 +257,6 @@ function App() {
           </>
         )}
 
-        {/* Other views (Contacts, Chats, Profile, Explore) are already enhanced with consistent colors */}
         {currentView === 'contacts' && (
           <div style={{ padding: '40px 20px' }}>
             <h2 style={{ textAlign: 'center', color: '#f59e0b', marginBottom: '20px' }}>👥 Network</h2>
@@ -319,13 +306,6 @@ function App() {
 
         {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
       </div>
-
-      {callType && callingUser && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-          <h2>{callType === 'video' ? '📹' : '📞'} {callType.toUpperCase()} Call with {callingUser}</h2>
-          <button onClick={endCall} style={{ marginTop: '40px', padding: '16px 60px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px' }}>End Call</button>
-        </div>
-      )}
 
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', display: 'flex', justifyContent: 'space-around', padding: '16px 0', borderTop: '1px solid #334155', backdropFilter: 'blur(16px)' }}>
         <button onClick={() => setCurrentView('wall')} style={{ fontSize: '32px' }}>🏠</button>
