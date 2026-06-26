@@ -16,11 +16,11 @@ function App() {
   const [followedUsers, setFollowedUsers] = useState<string[]>([]);
   const [dmChats, setDmChats] = useState<Record<string, any[]>>({});
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [connectId, setConnectId] = useState('');
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
-  const [uploadedMedia, setUploadedMedia] = useState<string | null>(null);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -102,14 +102,12 @@ function App() {
       timestamp: "just now", 
       likes: 0,
       comments: [],
-      ipfs: "ipfs://Qm" + Date.now().toString(36),
-      media: uploadedMedia
+      ipfs: "ipfs://Qm" + Date.now().toString(36)
     };
     const updated = [newEntry, ...myPosts];
     setMyPosts(updated);
     savePosts(updated);
     setNewPost('');
-    setUploadedMedia(null);
   };
 
   const likePost = (id: number) => {
@@ -140,10 +138,6 @@ function App() {
     const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
     navigator.clipboard.writeText(magnet);
     alert("🔗 Magnet link copied!");
-  };
-
-  const startCall = (type: 'voice' | 'video', user: string) => {
-    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE + WebRTC)`);
   };
 
   const directMessage = (user: string) => {
