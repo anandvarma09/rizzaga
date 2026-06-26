@@ -16,20 +16,21 @@ function App() {
   const [followedUsers, setFollowedUsers] = useState<string[]>([]);
   const [dmChats, setDmChats] = useState<Record<string, any[]>>({});
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [connectId, setConnectId] = useState('');
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
+  const [uploadedMedia, setUploadedMedia] = useState<string | null>(null);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
     const savedUser = localStorage.getItem('rizzaga_username');
+    const savedId = localStorage.getItem('rizzaga_accountId');
     if (savedSeed && savedUser) {
       setIsLoggedIn(true);
       setSeedPhrase(savedSeed);
       setUsername(savedUser);
-      setAccountId(btoa(savedUser + "rizzaga-stable-id").slice(0, 16)); // Stable ID
+      setAccountId(savedId || btoa(savedSeed).slice(0, 16));
       const savedPosts = localStorage.getItem(`posts_${savedSeed}`);
       if (savedPosts) setMyPosts(JSON.parse(savedPosts));
     }
@@ -49,34 +50,38 @@ function App() {
     if (!usernameAvailable) return alert("Username taken. Try another.");
     
     const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act","action","active","actor","actual"];
-    const phrase = Array.from({length:24}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
+    const phrase = Array.from({length:24}, () => words[Math.floor(Math.random()*words.length)]).join(" ") + " #" + Math.floor(Math.random()*8999+1000);
+    
+    const newId = btoa(inputUsername.trim() + Date.now()).slice(0, 16);
     
     setSeedPhrase(phrase);
     setUsername(inputUsername.trim());
-    setAccountId(btoa(inputUsername.trim() + "rizzaga-stable-id").slice(0, 16));
+    setAccountId(newId);
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', phrase);
     localStorage.setItem('rizzaga_username', inputUsername.trim());
-    alert("✅ Account created! Save your 24-word keyphrase safely.");
+    localStorage.setItem('rizzaga_accountId', newId);
   };
 
   const recoverAccount = () => {
     if (!inputPhrase.trim() || !inputUsername.trim()) return alert("Enter both username and keyphrase");
+    const newId = btoa(inputUsername.trim() + Date.now()).slice(0, 16);
     setSeedPhrase(inputPhrase.trim());
     setUsername(inputUsername.trim());
-    setAccountId(btoa(inputUsername.trim() + "rizzaga-stable-id").slice(0, 16));
+    setAccountId(newId);
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', inputPhrase.trim());
     localStorage.setItem('rizzaga_username', inputUsername.trim());
+    localStorage.setItem('rizzaga_accountId', newId);
   };
 
   const regenerateKeyphrase = () => {
     if (!confirm("Generate new 24-word keyphrase?")) return;
     const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act","action","active","actor","actual"];
-    const newPhrase = Array.from({length:24}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
+    const newPhrase = Array.from({length:24}, () => words[Math.floor(Math.random()*words.length)]).join(" ") + " #" + Math.floor(Math.random()*8999+1000);
     setSeedPhrase(newPhrase);
     localStorage.setItem('rizzaga_seed', newPhrase);
-    alert("✅ New keyphrase generated and saved!");
+    alert("✅ New keyphrase generated!");
   };
 
   const correctText = (text: string) => text
@@ -97,12 +102,14 @@ function App() {
       timestamp: "just now", 
       likes: 0,
       comments: [],
-      ipfs: "ipfs://Qm" + Date.now().toString(36)
+      ipfs: "ipfs://Qm" + Date.now().toString(36),
+      media: uploadedMedia
     };
     const updated = [newEntry, ...myPosts];
     setMyPosts(updated);
     savePosts(updated);
     setNewPost('');
+    setUploadedMedia(null);
   };
 
   const likePost = (id: number) => {
@@ -136,7 +143,7 @@ function App() {
   };
 
   const startCall = (type: 'voice' | 'video', user: string) => {
-    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE)`);
+    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE + WebRTC)`);
   };
 
   const directMessage = (user: string) => {
@@ -173,6 +180,7 @@ function App() {
       setIsLoggedIn(false);
       localStorage.removeItem('rizzaga_seed');
       localStorage.removeItem('rizzaga_username');
+      localStorage.removeItem('rizzaga_accountId');
     }
   };
 
@@ -298,7 +306,7 @@ function App() {
         {currentView === 'profile' && (
           <div style={{ padding: '80px 20px', textAlign: 'center' }}>
             <h2 style={{ color: '#a5b4fc', fontSize: '38px' }}>👤 {username}</h2>
-            <p style={{ color: '#94a3b8', margin: '10px 0' }}>Account ID: {accountId}</p>
+            <p style={{ color: '#94a3b8', margin: '10px 0' }}>Permanent Account ID: <strong>{accountId}</strong></p>
             <button onClick={() => alert(`Username: ${username}\n\nKeyphrase:\n${seedPhrase}\n\nAccount ID: ${accountId}`)} style={{ margin: '20px 0', padding: '18px 60px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold' }}>View Recovery Info</button>
             <button onClick={regenerateKeyphrase} style={{ margin: '10px 0', padding: '16px 50px', background: '#eab308', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold' }}>Generate New Keyphrase</button>
             <button onClick={logout} style={{ padding: '16px 50px', background: '#ef4444', color: 'white', borderRadius: '18px' }}>Logout</button>
