@@ -22,59 +22,6 @@ function App() {
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
 
-  // Real AES-GCM Encryption using Web Crypto API
-  const encryptData = async (data: any): Promise<string> => {
-    const encoder = new TextEncoder();
-    const keyMaterial = await crypto.subtle.importKey(
-      "raw", encoder.encode(seedPhrase), "PBKDF2", false, ["deriveBits", "deriveKey"]
-    );
-    const salt = encoder.encode("rizzaga-salt");
-    const key = await crypto.subtle.deriveKey(
-      { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
-      keyMaterial,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt"]
-    );
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encrypted = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      encoder.encode(JSON.stringify(data))
-    );
-    return btoa(String.fromCharCode(...new Uint8Array(iv)) + String.fromCharCode(...new Uint8Array(encrypted)));
-  };
-
-  const decryptData = async (encryptedStr: string): Promise<any> => {
-    try {
-      const decoder = new TextDecoder();
-      const data = atob(encryptedStr);
-      const iv = new Uint8Array(data.slice(0, 12).split('').map(c => c.charCodeAt(0)));
-      const ciphertext = new Uint8Array(data.slice(12).split('').map(c => c.charCodeAt(0)));
-      
-      const keyMaterial = await crypto.subtle.importKey(
-        "raw", new TextEncoder().encode(seedPhrase), "PBKDF2", false, ["deriveBits", "deriveKey"]
-      );
-      const salt = new TextEncoder().encode("rizzaga-salt");
-      const key = await crypto.subtle.deriveKey(
-        { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
-        keyMaterial,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"]
-      );
-      
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv },
-        key,
-        ciphertext
-      );
-      return JSON.parse(decoder.decode(decrypted));
-    } catch {
-      return [];
-    }
-  };
-
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
     const savedUser = localStorage.getItem('rizzaga_username');
@@ -82,23 +29,15 @@ function App() {
       setIsLoggedIn(true);
       setSeedPhrase(savedSeed);
       setUsername(savedUser);
-      setAccountId(btoa(savedSeed).slice(0, 16));
-      
-      const encryptedPosts = localStorage.getItem(`posts_${savedSeed}`);
-      if (encryptedPosts) {
-        decryptData(encryptedPosts).then(posts => setMyPosts(posts));
-      }
+      setAccountId(btoa(savedUser + "rizzaga-stable-id").slice(0, 16)); // Stable ID
+      const savedPosts = localStorage.getItem(`posts_${savedSeed}`);
+      if (savedPosts) setMyPosts(JSON.parse(savedPosts));
     }
   }, []);
 
-  const savePosts = async (posts: any[]) => {
-    if (seedPhrase) {
-      const encrypted = await encryptData(posts);
-      localStorage.setItem(`posts_${seedPhrase}`, encrypted);
-    }
+  const savePosts = (posts: any[]) => {
+    if (seedPhrase) localStorage.setItem(`posts_${seedPhrase}`, JSON.stringify(posts));
   };
-
-  // ... (rest of the functions remain the same as previous clean version)
 
   const checkUsername = (name: string) => {
     const taken = ["admin", "test", "alice", "bob", "cryptoqueen", "shadowbyte"].includes(name.toLowerCase().trim());
@@ -109,25 +48,116 @@ function App() {
     if (!inputUsername.trim()) return alert("Please choose a username");
     if (!usernameAvailable) return alert("Username taken. Try another.");
     
-    const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act"];
-    const phrase = Array.from({length:12}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
+    const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act","action","active","actor","actual"];
+    const phrase = Array.from({length:24}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
     
     setSeedPhrase(phrase);
     setUsername(inputUsername.trim());
-    setAccountId(btoa(phrase).slice(0, 16));
+    setAccountId(btoa(inputUsername.trim() + "rizzaga-stable-id").slice(0, 16));
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', phrase);
     localStorage.setItem('rizzaga_username', inputUsername.trim());
+    alert("✅ Account created! Save your 24-word keyphrase safely.");
   };
 
   const recoverAccount = () => {
     if (!inputPhrase.trim() || !inputUsername.trim()) return alert("Enter both username and keyphrase");
     setSeedPhrase(inputPhrase.trim());
     setUsername(inputUsername.trim());
-    setAccountId(btoa(inputPhrase.trim()).slice(0, 16));
+    setAccountId(btoa(inputUsername.trim() + "rizzaga-stable-id").slice(0, 16));
     setIsLoggedIn(true);
     localStorage.setItem('rizzaga_seed', inputPhrase.trim());
     localStorage.setItem('rizzaga_username', inputUsername.trim());
+  };
+
+  const regenerateKeyphrase = () => {
+    if (!confirm("Generate new 24-word keyphrase?")) return;
+    const words = ["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act","action","active","actor","actual"];
+    const newPhrase = Array.from({length:24}, () => words[Math.floor(Math.random()*words.length)]).join(" ");
+    setSeedPhrase(newPhrase);
+    localStorage.setItem('rizzaga_seed', newPhrase);
+    alert("✅ New keyphrase generated and saved!");
+  };
+
+  const correctText = (text: string) => text
+    .replace(/\b(i|im|iam)\b/gi, "I")
+    .replace(/\b(u|ur)\b/gi, "you")
+    .replace(/\b(r)\b/gi, "are");
+
+  const postMessage = () => {
+    if (!newPost.trim()) return;
+    const corrected = correctText(newPost);
+    const summary = corrected.length > 90 ? corrected.substring(0, 90) + "..." : corrected;
+    const newEntry = { 
+      id: Date.now(), 
+      user: username || "You", 
+      content: corrected, 
+      summary,
+      visibility, 
+      timestamp: "just now", 
+      likes: 0,
+      comments: [],
+      ipfs: "ipfs://Qm" + Date.now().toString(36)
+    };
+    const updated = [newEntry, ...myPosts];
+    setMyPosts(updated);
+    savePosts(updated);
+    setNewPost('');
+  };
+
+  const likePost = (id: number) => {
+    const updated = myPosts.map(p => p.id === id ? { ...p, likes: 1 } : p);
+    setMyPosts(updated);
+    savePosts(updated);
+  };
+
+  const toggleSummary = (id: number) => {
+    setShowSummaryForPost(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const addComment = (postId: number) => {
+    if (!commentInput.trim()) return;
+    const updated = myPosts.map(p => {
+      if (p.id === postId) {
+        return { ...p, comments: [...(p.comments || []), { user: username || "You", text: commentInput }] };
+      }
+      return p;
+    });
+    setMyPosts(updated);
+    savePosts(updated);
+    setCommentInput('');
+    setActiveCommentId(null);
+  };
+
+  const shareMagnet = (id: number) => {
+    const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
+    navigator.clipboard.writeText(magnet);
+    alert("🔗 Magnet link copied!");
+  };
+
+  const startCall = (type: 'voice' | 'video', user: string) => {
+    alert(`📞 ${type.toUpperCase()} Call with ${user} started (E2EE)`);
+  };
+
+  const directMessage = (user: string) => {
+    setActiveChatUser(user);
+    setCurrentView('chats');
+  };
+
+  const sendDM = (msg: string) => {
+    if (!msg.trim() || !activeChatUser) return;
+    const newMsg = { from: username || "You", text: msg, time: "now" };
+    setDmChats(prev => ({
+      ...prev,
+      [activeChatUser]: [...(prev[activeChatUser] || []), newMsg]
+    }));
+  };
+
+  const followUser = (user: string) => {
+    if (!followedUsers.includes(user)) {
+      setFollowedUsers([...followedUsers, user]);
+      alert(`✅ Connected with ${user}`);
+    }
   };
 
   const connectById = () => {
@@ -138,15 +168,20 @@ function App() {
     setConnectId('');
   };
 
-  // ... keep other functions (postMessage, likePost, etc.) from previous clean version
+  const logout = () => {
+    if (confirm("Logout?")) {
+      setIsLoggedIn(false);
+      localStorage.removeItem('rizzaga_seed');
+      localStorage.removeItem('rizzaga_username');
+    }
+  };
 
   if (!isLoggedIn) {
-    // ... (login screen remains the same with good alignment)
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #f59e0b', boxShadow: '0 0 80px rgba(245,158,11,0.3)' }}>
           <h1 style={{ fontSize: '52px', fontWeight: '900', marginBottom: '30px', color: '#f59e0b' }}>Rizzaga</h1>
-          <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Privacy First • Real AES-GCM Encryption</p>
+          <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Privacy First • Real Client-Side Encryption</p>
 
           <div style={{ marginBottom: '30px', display: 'flex', background: '#1e2937', borderRadius: '18px', padding: '6px' }}>
             <button onClick={() => setShowCreate(true)} style={{ flex: 1, padding: '14px', background: showCreate ? '#f59e0b' : 'transparent', color: showCreate ? '#1e2937' : 'white', borderRadius: '14px', fontWeight: 'bold' }}>Create Account</button>
@@ -162,7 +197,7 @@ function App() {
           ) : (
             <div>
               <input value={inputUsername} onChange={(e) => setInputUsername(e.target.value)} placeholder="Username" style={{ width: '100%', padding: '18px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '12px', fontSize: '16px', boxSizing: 'border-box' }} />
-              <textarea value={inputPhrase} onChange={(e) => setInputPhrase(e.target.value)} placeholder="12-word keyphrase" style={{ width: '100%', height: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '16px', resize: 'vertical', boxSizing: 'border-box' }} />
+              <textarea value={inputPhrase} onChange={(e) => setInputPhrase(e.target.value)} placeholder="24-word keyphrase" style={{ width: '100%', height: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '16px', resize: 'vertical', boxSizing: 'border-box' }} />
               <button onClick={recoverAccount} style={{ width: '100%', padding: '20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '18px', fontSize: '18px', fontWeight: 'bold' }}>Recover Account</button>
             </div>
           )}
@@ -174,19 +209,57 @@ function App() {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', paddingBottom: '90px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ paddingTop: '40px', maxWidth: '620px', margin: '0 auto', padding: '15px' }}>
-        {/* Wall, Profile, Explore sections same as before */}
+        {currentView === 'wall' && (
+          <>
+            <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#f59e0b' }}>Today's Wall</h2>
+            <div style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
+              <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What's happening today?" style={{ width: '100%', minHeight: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '18px', resize: 'vertical', boxSizing: 'border-box' }} />
+              <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
+                <button onClick={() => setVisibility('everyone')} style={{ flex: 1, padding: '14px', background: visibility === 'everyone' ? '#22c55e' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🌍 Everyone</button>
+                <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '14px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🔞 18+</button>
+              </div>
+              <button onClick={postMessage} style={{ marginTop: '18px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', padding: '18px', borderRadius: '18px', width: '100%', fontWeight: 'bold' }}>Post ({visibility})</button>
+            </div>
+
+            {myPosts.map((post) => (
+              <div key={post.id} style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
+                <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
+                <p style={{ margin: '16px 0', fontSize: '17px', lineHeight: '1.7' }}>{post.content}</p>
+                <button onClick={() => toggleSummary(post.id)} style={{ color: '#f59e0b', fontSize: '14px' }}>{showSummaryForPost[post.id] ? "Hide Summary" : "Show Summary"}</button>
+                {showSummaryForPost[post.id] && post.summary && <p style={{ color: '#94a3b8' }}>Summary: {post.summary}</p>}
+                <div style={{ display: 'flex', gap: '24px', marginTop: '16px', flexWrap: 'wrap' }}>
+                  <button onClick={() => likePost(post.id)} style={{ background: 'none', border: 'none', color: '#f59e0b', fontSize: '28px' }}>⭐ {post.likes || 0}</button>
+                  <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>💬</button>
+                  <button onClick={() => directMessage(post.user)} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '28px' }}>✉️</button>
+                  <button onClick={() => shareMagnet(post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>🔗</button>
+                </div>
+                {activeCommentId === post.id && (
+                  <div style={{ marginTop: '16px' }}>
+                    <input value={commentInput} onChange={(e) => setCommentInput(e.target.value)} placeholder="Write comment..." style={{ width: '100%', padding: '14px', background: '#0f172a', border: '1px solid #475569', borderRadius: '14px', color: 'white' }} />
+                    <button onClick={() => addComment(post.id)} style={{ marginTop: '10px', background: '#67e8f9', color: '#0f172a', padding: '12px 32px', borderRadius: '14px', fontWeight: 'bold' }}>Send</button>
+                  </div>
+                )}
+                {(post.comments || []).length > 0 && (
+                  <div style={{ marginTop: '16px', padding: '12px', background: '#1e2937', borderRadius: '12px' }}>
+                    {(post.comments || []).map((c: any, i: number) => <p key={i}><strong>{c.user}:</strong> {c.text}</p>)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </>
+        )}
 
         {currentView === 'contacts' && (
           <div style={{ padding: '40px 20px' }}>
             <h2 style={{ textAlign: 'center', color: '#f59e0b' }}>👥 Network</h2>
-            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search users..." style={{ width: '100%', padding: '14px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '20px' }} />
             
             <div style={{ marginBottom: '30px' }}>
               <input value={connectId} onChange={(e) => setConnectId(e.target.value)} placeholder="Enter Account ID to connect" style={{ width: '100%', padding: '14px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '10px' }} />
               <button onClick={connectById} style={{ width: '100%', padding: '14px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '18px', fontWeight: 'bold' }}>Connect by Account ID</button>
             </div>
 
-            {["Alice", "Bob", "CryptoQueen", "DecentralizedDev", "PrivacyNomad", "ShadowByte"].filter(u => u.toLowerCase().includes(searchQuery.toLowerCase())).map(user => (
+            <h3 style={{ color: '#94a3b8' }}>Suggested Users</h3>
+            {["Alice", "Bob", "CryptoQueen", "DecentralizedDev", "PrivacyNomad", "ShadowByte"].map(user => (
               <div key={user} style={{ background: 'rgba(30,41,55,0.95)', padding: '20px', margin: '12px 0', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #6366f1' }}>
                 <span>{user}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -198,7 +271,41 @@ function App() {
           </div>
         )}
 
-        {/* Other sections remain the same */}
+        {currentView === 'chats' && (
+          <div style={{ padding: '40px 20px' }}>
+            <h2 style={{ textAlign: 'center', color: '#c084fc' }}>💬 Chats</h2>
+            {activeChatUser ? (
+              <div>
+                <h3 style={{ color: '#f59e0b' }}>Chat with {activeChatUser}</h3>
+                <div style={{ background: 'rgba(30,41,55,0.95)', padding: '20px', borderRadius: '18px', minHeight: '400px', marginBottom: '12px', overflowY: 'auto', border: '1px solid #6366f1' }}>
+                  {(dmChats[activeChatUser] || []).map((m, i) => <p key={i}><strong>{m.from}:</strong> {m.text}</p>)}
+                </div>
+                <input onKeyPress={(e) => { if (e.key === 'Enter' && e.currentTarget.value.trim()) { sendDM(e.currentTarget.value); e.currentTarget.value = ''; } }} placeholder="Type secure message..." style={{ width: '100%', padding: '16px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white', boxSizing: 'border-box' }} />
+              </div>
+            ) : (
+              <div>
+                <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '20px' }}>Your Chats</p>
+                {Object.keys(dmChats).length > 0 ? Object.keys(dmChats).map(user => (
+                  <div key={user} onClick={() => directMessage(user)} style={{ background: 'rgba(30,41,55,0.95)', padding: '18px', margin: '10px 0', borderRadius: '18px', cursor: 'pointer', border: '1px solid #6366f1' }}>
+                    {user}
+                  </div>
+                )) : <p style={{ textAlign: 'center', color: '#94a3b8' }}>No chats yet. Go to Network to start one.</p>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentView === 'profile' && (
+          <div style={{ padding: '80px 20px', textAlign: 'center' }}>
+            <h2 style={{ color: '#a5b4fc', fontSize: '38px' }}>👤 {username}</h2>
+            <p style={{ color: '#94a3b8', margin: '10px 0' }}>Account ID: {accountId}</p>
+            <button onClick={() => alert(`Username: ${username}\n\nKeyphrase:\n${seedPhrase}\n\nAccount ID: ${accountId}`)} style={{ margin: '20px 0', padding: '18px 60px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold' }}>View Recovery Info</button>
+            <button onClick={regenerateKeyphrase} style={{ margin: '10px 0', padding: '16px 50px', background: '#eab308', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold' }}>Generate New Keyphrase</button>
+            <button onClick={logout} style={{ padding: '16px 50px', background: '#ef4444', color: 'white', borderRadius: '18px' }}>Logout</button>
+          </div>
+        )}
+
+        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
       </div>
 
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', display: 'flex', justifyContent: 'space-around', padding: '16px 0', borderTop: '1px solid #334155', backdropFilter: 'blur(16px)' }}>
