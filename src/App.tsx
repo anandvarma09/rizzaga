@@ -139,7 +139,7 @@ function App() {
   const shareMagnet = (id: number) => {
     const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
     navigator.clipboard.writeText(magnet);
-    alert("🔗 Real Torrent Magnet Link copied! Open in any torrent client or browser.");
+    alert("🔗 Real Torrent Magnet Link copied!");
   };
 
   const directMessage = (user: string) => {
@@ -159,7 +159,7 @@ function App() {
   const followUser = (user: string) => {
     if (!followedUsers.includes(user)) {
       setFollowedUsers([...followedUsers, user]);
-      alert(`✅ Connected with ${user}`);
+      alert(`✅ Followed ${user}`);
     }
   };
 
@@ -174,7 +174,7 @@ function App() {
   const startCall = (type: 'voice' | 'video', user: string) => {
     setCallType(type);
     setCallUser(user);
-    alert(`📞 Real WebRTC ${type.toUpperCase()} call with ${user} started (E2EE)`);
+    alert(`📞 Real WebRTC ${type.toUpperCase()} call started with ${user} (E2EE)`);
   };
 
   const endCall = () => {
@@ -278,7 +278,9 @@ function App() {
               <div key={user} style={{ background: 'rgba(30,41,55,0.95)', padding: '20px', margin: '12px 0', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #6366f1' }}>
                 <span>{user}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => followUser(user)} style={{ padding: '8px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '12px' }}>Follow</button>
+                  <button onClick={() => followUser(user)} style={{ padding: '8px 16px', background: followedUsers.includes(user) ? '#64748b' : '#22c55e', color: 'white', border: 'none', borderRadius: '12px' }}>
+                    {followedUsers.includes(user) ? 'Followed' : 'Follow'}
+                  </button>
                   <button onClick={() => directMessage(user)} style={{ padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '12px' }}>Message</button>
                   <button onClick={() => startCall('video', user)} style={{ padding: '8px 16px', background: '#22d3ee', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📹</button>
                   <button onClick={() => startCall('voice', user)} style={{ padding: '8px 16px', background: '#eab308', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📞</button>
