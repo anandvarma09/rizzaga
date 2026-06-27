@@ -183,7 +183,7 @@ function App() {
   };
 
   const reportPost = (id: number) => {
-    if (confirm("Report this post?")) {
+    if (confirm("Report post #" + id + "?")) {
       alert("Report sent to moderation. Thank you for keeping Rizzaga safe.");
     }
   };
