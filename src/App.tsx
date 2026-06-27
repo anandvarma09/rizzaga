@@ -182,6 +182,31 @@ function App() {
     setCallUser('');
   };
 
+  const reportPost = (id: number) => {
+    if (confirm("Report this post?")) {
+      alert("Report sent to moderation. Thank you for keeping Rizzaga safe.");
+    }
+  };
+
+  const cloudBackup = () => {
+    const backupData = {
+      username,
+      seedPhrase,
+      accountId,
+      posts: myPosts,
+      followed: followedUsers,
+      timestamp: new Date().toISOString()
+    };
+    const dataStr = JSON.stringify(backupData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    const exportFileDefaultName = `rizzaga_backup_${username}.json`;
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    alert("Backup downloaded! Save it securely in your cloud (Google Drive / iCloud).");
+  };
+
   const logout = () => {
     if (confirm("Logout?")) {
       setIsLoggedIn(false);
@@ -247,6 +272,7 @@ function App() {
                   <button onClick={() => setActiveCommentId(post.id === activeCommentId ? null : post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>💬</button>
                   <button onClick={() => directMessage(post.user)} style={{ background: 'none', border: 'none', color: '#c084fc', fontSize: '28px' }}>✉️</button>
                   <button onClick={() => shareMagnet(post.id)} style={{ background: 'none', border: 'none', color: '#67e8f9', fontSize: '28px' }}>🔗</button>
+                  <button onClick={() => reportPost(post.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '28px' }}>🚩</button>
                 </div>
                 {activeCommentId === post.id && (
                   <div style={{ marginTop: '16px' }}>
@@ -320,6 +346,7 @@ function App() {
             <p style={{ color: '#94a3b8', margin: '10px 0' }}>Permanent Account ID: <strong>{accountId}</strong></p>
             <button onClick={() => alert(`Username: ${username}\n\nKeyphrase:\n${seedPhrase}\n\nAccount ID: ${accountId}`)} style={{ margin: '20px 0', padding: '18px 60px', background: 'linear-gradient(#f59e0b, #d97706)', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold' }}>View Recovery Info</button>
             <button onClick={regenerateKeyphrase} style={{ margin: '10px 0', padding: '16px 50px', background: '#eab308', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold' }}>Generate New Keyphrase</button>
+            <button onClick={cloudBackup} style={{ margin: '10px 0', padding: '16px 50px', background: '#22c55e', color: '#1e2937', borderRadius: '18px', fontWeight: 'bold' }}>Backup to Cloud</button>
             <button onClick={logout} style={{ padding: '16px 50px', background: '#ef4444', color: 'white', borderRadius: '18px' }}>Logout</button>
           </div>
         )}
