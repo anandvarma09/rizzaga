@@ -20,6 +20,7 @@ function App() {
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
+  const [uploadedMedia, setUploadedMedia] = useState<string | null>(null);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -101,12 +102,14 @@ function App() {
       timestamp: "just now", 
       likes: 0,
       comments: [],
-      ipfs: "ipfs://Qm" + Date.now().toString(36)
+      ipfs: "ipfs://Qm" + Date.now().toString(36),
+      media: uploadedMedia
     };
     const updated = [newEntry, ...myPosts];
     setMyPosts(updated);
     savePosts(updated);
     setNewPost('');
+    setUploadedMedia(null);
   };
 
   const likePost = (id: number) => {
@@ -306,7 +309,14 @@ function App() {
           </div>
         )}
 
-        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
+        {currentView === 'explore' && (
+          <div style={{ padding: '140px 20px', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</h2>
+            <div style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', margin: '30px 0', border: '1px solid #f59e0b' }}>
+              <p>Sponsored: Premium Privacy Tools - 0.001 BTC</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', display: 'flex', justifyContent: 'space-around', padding: '16px 0', borderTop: '1px solid #334155', backdropFilter: 'blur(16px)' }}>
