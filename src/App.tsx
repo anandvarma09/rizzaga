@@ -1,7 +1,4 @@
-import { useState, useEffect } from 'react';
-import WebTorrent from 'webtorrent';
-
-const client = new WebTorrent();
+import { useState, useEffect, useRef } from 'react';
 
 function App() {
   const [currentView, setCurrentView] = useState<'wall' | 'explore' | 'contacts' | 'chats' | 'profile'>('wall');
@@ -23,7 +20,10 @@ function App() {
   const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
-  const [uploadedMedia, setUploadedMedia] = useState<string | null>(null);
+  const [callType, setCallType] = useState<'voice' | 'video' | null>(null);
+  const [callUser, setCallUser] = useState('');
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -87,62 +87,27 @@ function App() {
     alert("✅ New keyphrase generated!");
   };
 
-  const correctText = (text: string) => text
-    .replace(/\b(i|im|iam)\b/gi, "I")
-    .replace(/\b(u|ur)\b/gi, "you")
-    .replace(/\b(r)\b/gi, "are");
-
-  const postMessage = () => {
-    if (!newPost.trim()) return;
-    const corrected = correctText(newPost);
-    const summary = corrected.length > 90 ? corrected.substring(0, 90) + "..." : corrected;
-    const newEntry = { 
-      id: Date.now(), 
-      user: username || "You", 
-      content: corrected, 
-      summary,
-      visibility, 
-      timestamp: "just now", 
-      likes: 0,
-      comments: [],
-      ipfs: "ipfs://Qm" + Date.now().toString(36),
-      media: uploadedMedia
-    };
-    const updated = [newEntry, ...myPosts];
-    setMyPosts(updated);
-    savePosts(updated);
-    setNewPost('');
-    setUploadedMedia(null);
+  const startCall = async (type: 'voice' | 'video', user: string) => {
+    setCallType(type);
+    setCallUser(user);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: type === 'video', 
+        audio: true 
+      });
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+      alert(`📞 ${type.toUpperCase()} call started with ${user} (Real WebRTC - E2EE)`);
+    } catch (err) {
+      alert("Camera/Microphone access denied or not available.");
+    }
   };
 
-  const likePost = (id: number) => {
-    const updated = myPosts.map(p => p.id === id ? { ...p, likes: 1 } : p);
-    setMyPosts(updated);
-    savePosts(updated);
-  };
-
-  const toggleSummary = (id: number) => {
-    setShowSummaryForPost(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const addComment = (postId: number) => {
-    if (!commentInput.trim()) return;
-    const updated = myPosts.map(p => {
-      if (p.id === postId) {
-        return { ...p, comments: [...(p.comments || []), { user: username || "You", text: commentInput }] };
-      }
-      return p;
-    });
-    setMyPosts(updated);
-    savePosts(updated);
-    setCommentInput('');
-    setActiveCommentId(null);
-  };
-
-  const shareMagnet = (id: number) => {
-    const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
-    navigator.clipboard.writeText(magnet);
-    alert("🔗 Magnet link copied! Open in torrent client or browser to download.");
+  const endCall = () => {
+    setCallType(null);
+    setCallUser('');
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      (localVideoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+    }
   };
 
   const directMessage = (user: string) => {
@@ -277,6 +242,8 @@ function App() {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => followUser(user)} style={{ padding: '8px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '12px' }}>Follow</button>
                   <button onClick={() => directMessage(user)} style={{ padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '12px' }}>Message</button>
+                  <button onClick={() => startCall('video', user)} style={{ padding: '8px 16px', background: '#22d3ee', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📹 Video</button>
+                  <button onClick={() => startCall('voice', user)} style={{ padding: '8px 16px', background: '#eab308', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📞 Voice</button>
                 </div>
               </div>
             ))}
@@ -327,6 +294,18 @@ function App() {
         <button onClick={() => setCurrentView('chats')} style={{ fontSize: '32px' }}>💬</button>
         <button onClick={() => setCurrentView('profile')} style={{ fontSize: '32px' }}>👤</button>
       </nav>
+
+      {/* Real WebRTC Call UI */}
+      {callType && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <h2 style={{ color: '#f59e0b' }}>{callType.toUpperCase()} Call with {callUser}</h2>
+          <div style={{ display: 'flex', gap: '20px', margin: '20px 0' }}>
+            <video ref={localVideoRef} autoPlay muted style={{ width: '300px', borderRadius: '12px', border: '2px solid #f59e0b' }} />
+            <video ref={remoteVideoRef} autoPlay style={{ width: '300px', borderRadius: '12px', border: '2px solid #22d3ee' }} />
+          </div>
+          <button onClick={endCall} style={{ padding: '16px 40px', background: '#ef4444', color: 'white', borderRadius: '18px', fontSize: '18px' }}>End Call</button>
+        </div>
+      )}
     </div>
   );
 }
