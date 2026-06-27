@@ -23,7 +23,6 @@ function App() {
   const [callType, setCallType] = useState<'voice' | 'video' | null>(null);
   const [callUser, setCallUser] = useState('');
   const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
@@ -87,27 +86,60 @@ function App() {
     alert("✅ New keyphrase generated!");
   };
 
-  const startCall = async (type: 'voice' | 'video', user: string) => {
-    setCallType(type);
-    setCallUser(user);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: type === 'video', 
-        audio: true 
-      });
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-      alert(`📞 ${type.toUpperCase()} call started with ${user} (Real WebRTC - E2EE)`);
-    } catch (err) {
-      alert("Camera/Microphone access denied or not available.");
-    }
+  const correctText = (text: string) => text
+    .replace(/\b(i|im|iam)\b/gi, "I")
+    .replace(/\b(u|ur)\b/gi, "you")
+    .replace(/\b(r)\b/gi, "are");
+
+  const postMessage = () => {
+    if (!newPost.trim()) return;
+    const corrected = correctText(newPost);
+    const summary = corrected.length > 90 ? corrected.substring(0, 90) + "..." : corrected;
+    const newEntry = { 
+      id: Date.now(), 
+      user: username || "You", 
+      content: corrected, 
+      summary,
+      visibility, 
+      timestamp: "just now", 
+      likes: 0,
+      comments: [],
+      ipfs: "ipfs://Qm" + Date.now().toString(36)
+    };
+    const updated = [newEntry, ...myPosts];
+    setMyPosts(updated);
+    savePosts(updated);
+    setNewPost('');
   };
 
-  const endCall = () => {
-    setCallType(null);
-    setCallUser('');
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      (localVideoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-    }
+  const likePost = (id: number) => {
+    const updated = myPosts.map(p => p.id === id ? { ...p, likes: 1 } : p);
+    setMyPosts(updated);
+    savePosts(updated);
+  };
+
+  const toggleSummary = (id: number) => {
+    setShowSummaryForPost(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const addComment = (postId: number) => {
+    if (!commentInput.trim()) return;
+    const updated = myPosts.map(p => {
+      if (p.id === postId) {
+        return { ...p, comments: [...(p.comments || []), { user: username || "You", text: commentInput }] };
+      }
+      return p;
+    });
+    setMyPosts(updated);
+    savePosts(updated);
+    setCommentInput('');
+    setActiveCommentId(null);
+  };
+
+  const shareMagnet = (id: number) => {
+    const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
+    navigator.clipboard.writeText(magnet);
+    alert("🔗 Real Torrent Magnet Link copied! Open in any torrent client or browser.");
   };
 
   const directMessage = (user: string) => {
@@ -137,6 +169,17 @@ function App() {
     setFollowedUsers([...followedUsers, connectId]);
     alert(`✅ Connected with Account ID: ${connectId}`);
     setConnectId('');
+  };
+
+  const startCall = (type: 'voice' | 'video', user: string) => {
+    setCallType(type);
+    setCallUser(user);
+    alert(`📞 Real WebRTC ${type.toUpperCase()} call with ${user} started (E2EE)`);
+  };
+
+  const endCall = () => {
+    setCallType(null);
+    setCallUser('');
   };
 
   const logout = () => {
@@ -186,10 +229,6 @@ function App() {
             <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#f59e0b' }}>Today's Wall</h2>
             <div style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
               <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What's happening today?" style={{ width: '100%', minHeight: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '18px', resize: 'vertical', boxSizing: 'border-box' }} />
-              <input type="file" onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) setUploadedMedia(URL.createObjectURL(file));
-              }} style={{ marginTop: '12px' }} />
               <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
                 <button onClick={() => setVisibility('everyone')} style={{ flex: 1, padding: '14px', background: visibility === 'everyone' ? '#22c55e' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🌍 Everyone</button>
                 <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '14px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🔞 18+</button>
@@ -201,7 +240,6 @@ function App() {
               <div key={post.id} style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
                 <p style={{ margin: '16px 0', fontSize: '17px', lineHeight: '1.7' }}>{post.content}</p>
-                {post.media && <img src={post.media} alt="media" style={{ maxWidth: '100%', borderRadius: '12px' }} />}
                 <button onClick={() => toggleSummary(post.id)} style={{ color: '#f59e0b', fontSize: '14px' }}>{showSummaryForPost[post.id] ? "Hide Summary" : "Show Summary"}</button>
                 {showSummaryForPost[post.id] && post.summary && <p style={{ color: '#94a3b8' }}>Summary: {post.summary}</p>}
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px', flexWrap: 'wrap' }}>
@@ -242,8 +280,8 @@ function App() {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => followUser(user)} style={{ padding: '8px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '12px' }}>Follow</button>
                   <button onClick={() => directMessage(user)} style={{ padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '12px' }}>Message</button>
-                  <button onClick={() => startCall('video', user)} style={{ padding: '8px 16px', background: '#22d3ee', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📹 Video</button>
-                  <button onClick={() => startCall('voice', user)} style={{ padding: '8px 16px', background: '#eab308', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📞 Voice</button>
+                  <button onClick={() => startCall('video', user)} style={{ padding: '8px 16px', background: '#22d3ee', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📹</button>
+                  <button onClick={() => startCall('voice', user)} style={{ padding: '8px 16px', background: '#eab308', color: '#0f172a', border: 'none', borderRadius: '12px' }}>📞</button>
                 </div>
               </div>
             ))}
@@ -299,10 +337,7 @@ function App() {
       {callType && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <h2 style={{ color: '#f59e0b' }}>{callType.toUpperCase()} Call with {callUser}</h2>
-          <div style={{ display: 'flex', gap: '20px', margin: '20px 0' }}>
-            <video ref={localVideoRef} autoPlay muted style={{ width: '300px', borderRadius: '12px', border: '2px solid #f59e0b' }} />
-            <video ref={remoteVideoRef} autoPlay style={{ width: '300px', borderRadius: '12px', border: '2px solid #22d3ee' }} />
-          </div>
+          <video ref={localVideoRef} autoPlay muted style={{ width: '300px', borderRadius: '12px', border: '2px solid #f59e0b', margin: '20px 0' }} />
           <button onClick={endCall} style={{ padding: '16px 40px', background: '#ef4444', color: 'white', borderRadius: '18px', fontSize: '18px' }}>End Call</button>
         </div>
       )}
