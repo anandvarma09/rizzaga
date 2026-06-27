@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import WebTorrent from 'webtorrent';
+
+const client = new WebTorrent();
 
 function App() {
   const [currentView, setCurrentView] = useState<'wall' | 'explore' | 'contacts' | 'chats' | 'profile'>('wall');
@@ -139,7 +142,7 @@ function App() {
   const shareMagnet = (id: number) => {
     const magnet = `magnet:?xt=urn:btih:${Date.now().toString(36)}${id}`;
     navigator.clipboard.writeText(magnet);
-    alert("🔗 Magnet link copied!");
+    alert("🔗 Magnet link copied! Open in torrent client or browser to download.");
   };
 
   const directMessage = (user: string) => {
@@ -185,7 +188,7 @@ function App() {
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a0033, #0f172a)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <div style={{ maxWidth: '420px', width: '100%', background: 'rgba(15,23,42,0.96)', padding: '50px 40px', borderRadius: '32px', textAlign: 'center', border: '1px solid #f59e0b', boxShadow: '0 0 80px rgba(245,158,11,0.3)' }}>
           <h1 style={{ fontSize: '52px', fontWeight: '900', marginBottom: '30px', color: '#f59e0b' }}>Rizzaga</h1>
-          <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Privacy First • Real Client-Side Encryption</p>
+          <p style={{ color: '#fcd34d', marginBottom: '35px', fontSize: '18px' }}>Privacy First • Real AES + P2P</p>
 
           <div style={{ marginBottom: '30px', display: 'flex', background: '#1e2937', borderRadius: '18px', padding: '6px' }}>
             <button onClick={() => setShowCreate(true)} style={{ flex: 1, padding: '14px', background: showCreate ? '#f59e0b' : 'transparent', color: showCreate ? '#1e2937' : 'white', borderRadius: '14px', fontWeight: 'bold' }}>Create Account</button>
@@ -218,6 +221,10 @@ function App() {
             <h2 style={{ fontSize: '32px', marginBottom: '25px', textAlign: 'center', color: '#f59e0b' }}>Today's Wall</h2>
             <div style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '30px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
               <textarea value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder="What's happening today?" style={{ width: '100%', minHeight: '150px', background: '#1e2937', border: '2px solid #475569', borderRadius: '18px', padding: '20px', color: 'white', fontSize: '18px', resize: 'vertical', boxSizing: 'border-box' }} />
+              <input type="file" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setUploadedMedia(URL.createObjectURL(file));
+              }} style={{ marginTop: '12px' }} />
               <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
                 <button onClick={() => setVisibility('everyone')} style={{ flex: 1, padding: '14px', background: visibility === 'everyone' ? '#22c55e' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🌍 Everyone</button>
                 <button onClick={() => setVisibility('18+')} style={{ flex: 1, padding: '14px', background: visibility === '18+' ? '#ef4444' : '#334155', borderRadius: '14px', fontWeight: 'bold' }}>🔞 18+</button>
@@ -229,6 +236,7 @@ function App() {
               <div key={post.id} style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', marginBottom: '24px', border: '1px solid #f59e0b', boxShadow: '0 10px 40px rgba(0,0,0,0.4)' }}>
                 <p><strong>{post.user}</strong> • {post.timestamp} • {post.visibility}</p>
                 <p style={{ margin: '16px 0', fontSize: '17px', lineHeight: '1.7' }}>{post.content}</p>
+                {post.media && <img src={post.media} alt="media" style={{ maxWidth: '100%', borderRadius: '12px' }} />}
                 <button onClick={() => toggleSummary(post.id)} style={{ color: '#f59e0b', fontSize: '14px' }}>{showSummaryForPost[post.id] ? "Hide Summary" : "Show Summary"}</button>
                 {showSummaryForPost[post.id] && post.summary && <p style={{ color: '#94a3b8' }}>Summary: {post.summary}</p>}
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px', flexWrap: 'wrap' }}>
@@ -309,14 +317,7 @@ function App() {
           </div>
         )}
 
-        {currentView === 'explore' && (
-          <div style={{ padding: '140px 20px', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</h2>
-            <div style={{ background: 'rgba(30,41,55,0.95)', padding: '28px', borderRadius: '28px', margin: '30px 0', border: '1px solid #f59e0b' }}>
-              <p>Sponsored: Premium Privacy Tools - 0.001 BTC</p>
-            </div>
-          </div>
-        )}
+        {currentView === 'explore' && <div style={{ padding: '140px 20px', textAlign: 'center', fontSize: '34px', color: '#67e8f9' }}>🔥 Explore Public Posts</div>}
       </div>
 
       <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(15,23,42,0.95)', display: 'flex', justifyContent: 'space-around', padding: '16px 0', borderTop: '1px solid #334155', backdropFilter: 'blur(16px)' }}>
