@@ -157,13 +157,6 @@ function App() {
     }));
   };
 
-  const followUser = (user: string) => {
-    if (!followedUsers.includes(user)) {
-      setFollowedUsers([...followedUsers, user]);
-      alert(`✅ Followed ${user}`);
-    }
-  };
-
   const connectById = () => {
     if (!connectId.trim()) return alert("Enter Account ID");
     if (followedUsers.includes(connectId)) return alert("Already connected");
