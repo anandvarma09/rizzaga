@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 function App() {
   const [currentView, setCurrentView] = useState<'wall' | 'explore' | 'contacts' | 'chats' | 'profile'>('wall');
@@ -21,7 +21,6 @@ function App() {
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
   const [showAbout, setShowAbout] = useState(false);
-  const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
