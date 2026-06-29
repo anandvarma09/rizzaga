@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Rizzaga</string>
+    <string name="title_activity_main">Rizzaga</string>
+    <string name="package_name">com.rizzaga.app</string>
+    <string name="custom_url_scheme">com.rizzaga.app</string>
+</resources>
