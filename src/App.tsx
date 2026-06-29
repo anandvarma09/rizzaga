@@ -278,6 +278,13 @@ function App() {
               <input value={connectId} onChange={(e) => setConnectId(e.target.value)} placeholder="Enter Account ID to connect" style={{ width: '100%', padding: '14px', background: '#1e2937', border: '1px solid #475569', borderRadius: '18px', color: 'white', marginBottom: '10px' }} />
               <button onClick={connectById} style={{ width: '100%', padding: '14px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '18px', fontWeight: 'bold' }}>Connect by Account ID</button>
             </div>
+
+            <h3 style={{ color: '#94a3b8' }}>Your Connections</h3>
+            {followedUsers.length > 0 ? followedUsers.map(user => (
+              <div key={user} style={{ background: 'rgba(30,41,55,0.95)', padding: '20px', margin: '12px 0', borderRadius: '18px', border: '1px solid #6366f1' }}>
+                {user}
+              </div>
+            )) : <p style={{ color: '#94a3b8' }}>No connections yet. Connect using Account ID above.</p>}
           </div>
         )}
 
