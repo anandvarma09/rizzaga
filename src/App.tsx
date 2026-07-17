@@ -17,6 +17,7 @@ function App() {
   const [dmChats, setDmChats] = useState<Record<string, any[]>>({});
   const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
   const [connectId, setConnectId] = useState('');
+  const [showSummaryForPost, setShowSummaryForPost] = useState<Record<number, boolean>>({});
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
   const [showAbout, setShowAbout] = useState(false);
