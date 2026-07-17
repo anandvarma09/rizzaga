@@ -21,6 +21,7 @@ function App() {
   const [usernameAvailable, setUsernameAvailable] = useState(true);
   const [showCreate, setShowCreate] = useState(true);
   const [showAbout, setShowAbout] = useState(false);
+  const [ageVerified, setAgeVerified] = useState(false);
 
   useEffect(() => {
     const savedSeed = localStorage.getItem('rizzaga_seed');
