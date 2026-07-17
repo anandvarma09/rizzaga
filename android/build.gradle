@@ -7,11 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-<<<<<<< HEAD
-        classpath 'com.android.tools.build:gradle:8.9.1'
-=======
         classpath 'com.android.tools.build:gradle:8.8.0'
->>>>>>> 82635985b0d217c114dc0e6b41637d251164fa3f
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
