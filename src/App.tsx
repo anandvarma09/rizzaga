@@ -34,6 +34,10 @@ function App() {
       const savedPosts = localStorage.getItem(`posts_${savedSeed}`);
       if (savedPosts) setMyPosts(JSON.parse(savedPosts));
     }
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
   }, []);
 
   const savePosts = (posts: any[]) => {
@@ -41,7 +45,7 @@ function App() {
   };
 
   const checkUsername = (name: string) => {
-    const taken = ["admin", "test", "alice", "bob", "cryptoqueen", "shadowbyte"].includes(name.toLowerCase().trim());
+    const taken = ["admin", "test", "alice", "bob"].includes(name.toLowerCase().trim());
     setUsernameAvailable(!taken);
   };
 
@@ -84,10 +88,7 @@ function App() {
     alert("✅ New keyphrase generated!");
   };
 
-  const correctText = (text: string) => text
-    .replace(/\b(i|im|iam)\b/gi, "I")
-    .replace(/\b(u|ur)\b/gi, "you")
-    .replace(/\b(r)\b/gi, "are");
+  const correctText = (text: string) => text.replace(/\b(i|im|iam)\b/gi, "I").replace(/\b(u|ur)\b/gi, "you").replace(/\b(r)\b/gi, "are");
 
   const postMessage = () => {
     if (!newPost.trim()) return;
@@ -152,13 +153,16 @@ function App() {
       ...prev,
       [activeChatUser]: [...(prev[activeChatUser] || []), newMsg]
     }));
+    // Show notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(`New message from ${activeChatUser}`, { body: msg });
+    }
   };
 
   const connectById = () => {
-    if (!connectId.trim()) return alert("Enter Account ID");
-    if (followedUsers.includes(connectId)) return alert("Already connected");
+    if (!connectId.trim() || followedUsers.includes(connectId)) return alert("Already connected or invalid");
     setFollowedUsers([...followedUsers, connectId]);
-    alert(`✅ Connected with Account ID: ${connectId}`);
+    alert(`✅ Connected with ${connectId}`);
     setConnectId('');
   };
 
